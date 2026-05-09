@@ -1,0 +1,334 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  nom            String
+  prenoms        String
+  email          String   @unique
+  password       String
+  poste          String
+  matricule      String?
+  numeroOrdre    String?
+  ordre          String?
+  telephone      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  prescriptionsMed      PrescriptionMedicale[]
+  prescriptionsNM       PrescriptionNonMedicale[]
+  prescriptionsSurv     PrescriptionSurveillance[]
+  prescriptionsTrans    PrescriptionTransfusion[]
+  prescriptionsBloc     PrescriptionBloc[]
+  prescriptionsLabo     PrescriptionLabo[]
+  prescriptionsImagerie PrescriptionImagerie[]
+  prescriptionsAnapath  PrescriptionAnapath[]
+  prescriptionsEEG      PrescriptionEEG[]
+  prescriptionsKine     PrescriptionKine[]
+  prescriptionsDialyse  PrescriptionDialyse[]
+  prescriptionsEndo     PrescriptionEndoscopie[]
+}
+
+model Patient {
+  id            String    @id @default(uuid())
+  idPermanent   String    @unique
+  nom           String
+  prenom        String
+  dateNaissance DateTime?
+  sexe          String?
+  telephone     String?
+  adresse       String?
+  allergies     String[]
+  categorie     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  prescriptionsMed      PrescriptionMedicale[]
+  prescriptionsNM       PrescriptionNonMedicale[]
+  prescriptionsSurv     PrescriptionSurveillance[]
+  prescriptionsTrans    PrescriptionTransfusion[]
+  prescriptionsBloc     PrescriptionBloc[]
+  prescriptionsLabo     PrescriptionLabo[]
+  prescriptionsImagerie PrescriptionImagerie[]
+  prescriptionsAnapath  PrescriptionAnapath[]
+  prescriptionsEEG      PrescriptionEEG[]
+  prescriptionsKine     PrescriptionKine[]
+  prescriptionsDialyse  PrescriptionDialyse[]
+  prescriptionsEndo     PrescriptionEndoscopie[]
+}
+
+model PrescriptionMedicale {
+  id                String   @id @default(uuid())
+  patientId         String
+  prescripteurId    String
+  statut            String   @default("ACTIVE")
+  remarques         String?
+  notifierInfirmier Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+  medicaments  Medicament[]
+  ordonnance   Ordonnance?
+}
+
+model Medicament {
+  id             String    @id @default(uuid())
+  prescriptionId String
+  nom            String
+  dose           String
+  quantite       Int       @default(1)
+  voie           String?
+  frequence      String
+  duree          String
+  dateDebut      DateTime?
+  heureDebut     String?
+  instructions   String?
+  remarques      String?
+  createdAt      DateTime  @default(now())
+
+  prescription PrescriptionMedicale @relation(fields: [prescriptionId], references: [id])
+}
+
+model Ordonnance {
+  id             String   @id @default(uuid())
+  prescriptionId String   @unique
+  medicaments    Json
+  createdAt      DateTime @default(now())
+
+  prescription PrescriptionMedicale @relation(fields: [prescriptionId], references: [id])
+}
+
+model PrescriptionNonMedicale {
+  id                String   @id @default(uuid())
+  patientId         String
+  prescripteurId    String
+  statut            String   @default("ACTIVE")
+  notifierInfirmier Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+  items        ItemNonMedical[]
+}
+
+model ItemNonMedical {
+  id             String    @id @default(uuid())
+  prescriptionId String
+  type           String
+  description    String
+  duree          String?
+  frequence      String?
+  dateDebut      DateTime?
+  heureDebut     String?
+  instructions   String?
+  createdAt      DateTime  @default(now())
+
+  prescription PrescriptionNonMedicale @relation(fields: [prescriptionId], references: [id])
+}
+
+model PrescriptionSurveillance {
+  id                String   @id @default(uuid())
+  patientId         String
+  prescripteurId    String
+  statut            String   @default("ACTIVE")
+  notes             String?
+  notifierInfirmier Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+  parametres   ParametreSurveillance[]
+}
+
+model ParametreSurveillance {
+  id             String   @id @default(uuid())
+  prescriptionId String
+  parametre      String
+  frequence      String
+  duree          String?
+  seuil          String?
+  details        Json?
+  createdAt      DateTime @default(now())
+
+  prescription PrescriptionSurveillance @relation(fields: [prescriptionId], references: [id])
+}
+
+model PrescriptionTransfusion {
+  id              String    @id @default(uuid())
+  patientId       String
+  prescripteurId  String
+  urgence         String    @default("n")
+  alertes         String?
+  renseignements  String
+  atcdTransfusion Boolean   @default(false)
+  incident        String?
+  groupage        String
+  hb              Float?
+  produit         String
+  plaquettes      Float?
+  quantite        String?
+  datePrevue      DateTime?
+  notes           String?
+  statut          String    @default("ENVOYEE")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionBloc {
+  id                 String    @id @default(uuid())
+  patientId          String
+  prescripteurId     String
+  urgence            String    @default("n")
+  alertes            String?
+  libelle            String
+  cote               String?
+  dateIntervention   DateTime?
+  risqueHemorragique String?
+  typeChirurgie      String?
+  consignes          String?
+  chirurgien         String?
+  statut             String    @default("DEMANDE_CPA")
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionLabo {
+  id             String   @id @default(uuid())
+  patientId      String
+  prescripteurId String
+  urgence        String   @default("n")
+  alertes        String?
+  renseignements String
+  analyses       String[]
+  notes          String?
+  statut         String   @default("CREEE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionImagerie {
+  id             String   @id @default(uuid())
+  patientId      String
+  prescripteurId String
+  urgence        String   @default("n")
+  alertes        String?
+  renseignements String
+  statutPatient  String?
+  examens        Json
+  notes          String?
+  statut         String   @default("CREEE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionAnapath {
+  id             String   @id @default(uuid())
+  patientId      String
+  prescripteurId String
+  urgence        String   @default("n")
+  alertes        String?
+  typeExamen     String
+  data           Json
+  statut         String   @default("CREEE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionEEG {
+  id             String   @id @default(uuid())
+  patientId      String
+  prescripteurId String
+  urgence        String   @default("n")
+  alertes        String?
+  renseignements String
+  typeEEG        String
+  remarques      String?
+  statut         String   @default("CREEE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionKine {
+  id                String   @id @default(uuid())
+  patientId         String
+  prescripteurId    String
+  urgence           String   @default("n")
+  alertes           String?
+  renseignements    String
+  typeKine          String
+  autreKine         String?
+  diagnostic        String?
+  contreIndications String[]
+  autreContreIndic  String?
+  objectifs         String?
+  remarques         String?
+  statut            String   @default("CREEE")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionDialyse {
+  id             String   @id @default(uuid())
+  patientId      String
+  prescripteurId String
+  urgence        String   @default("n")
+  alertes        String?
+  renseignements String
+  typeDialyse    String
+  remarques      String?
+  statut         String   @default("CREEE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model PrescriptionEndoscopie {
+  id             String   @id @default(uuid())
+  patientId      String
+  prescripteurId String
+  urgence        String   @default("n")
+  alertes        String?
+  renseignements String
+  typeExamen     String
+  autreExamen    String?
+  remarques      String?
+  statut         String   @default("CREEE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
