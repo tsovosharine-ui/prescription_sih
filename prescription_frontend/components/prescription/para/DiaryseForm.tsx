@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { creerPrescriptionDialyse } from '@/lib/api';
 
 type Urgence = "n" | "u" | "tu";
 const urgenceClasses: Record<Urgence, string> = { n: "un", u: "uu", tu: "utu" };
@@ -12,28 +13,63 @@ const DIALYSE_TYPES = [
   "DPA automatisée",
 ];
 
-export default function DiaryseForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function DiaryseForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence]     = useState<Urgence>("n");
   const [alertes, setAlertes]     = useState("");
-  const [renseign, setRenseign]   = useState("");
+  const [renseignements, setRenseignements]   = useState("");
   const [dialType, setDialType]   = useState("");
   const [remarques, setRemarques] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast]         = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [apiError, setApiError]   = useState("");
 
-  const isFormValid = !!renseign.trim() && !!dialType;
+  const isFormValid = !!renseignements.trim() && !!dialType;
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
-  function handleSubmit() { setShowModal(false); showToast("Prescription dialyse transmise"); }
+
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError("");
+    try {
+      await creerPrescriptionDialyse({
+        patientId: patient.id,
+        urgence,
+        alertes,
+        renseignements,
+        typeDialyse: dialType,
+        remarques,
+      });
+      showToast("Prescription dialyse transmise");
+      // reset
+      setUrgence("n"); setAlertes(""); setRenseignements(""); setDialType(""); setRemarques("");
+    } catch {
+      setApiError("Erreur lors de l'envoi. Vérifiez la connexion.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
-        {/* COLONNE GAUCHE */}
+      {apiError && (
+        <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
+          {apiError}
+        </div>
+      )}
+
+      <div className="g2-form mb12">
+        {/* Colonne gauche : renseignements + type dialyse */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 12 }}>
             <label className="lbl">Renseignements cliniques <span className="req">*</span></label>
-            <textarea rows={3} value={renseign} onChange={e => setRenseign(e.target.value)}
+            <textarea rows={3} value={renseignements} onChange={e => setRenseignements(e.target.value)}
               placeholder="Insuffisance rénale, indications de dialyse, antécédents néphrologiques..." />
           </div>
           <div className="card" style={{ padding: 12 }}>
@@ -52,8 +88,8 @@ export default function DiaryseForm() {
           </div>
         </div>
 
-        {/* COLONNE DROITE — sticky */}
-        <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Colonne droite : urgence compacte + autres remarques + bouton */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 8 }}>
             <label className="lbl">Degré d'urgence <span className="req">*</span></label>
             <div className={`urgr ${urgenceClasses[urgence]}`} style={{ marginBottom: 8 }}>
@@ -78,8 +114,8 @@ export default function DiaryseForm() {
               placeholder="Durée de séance, débit, héparine, objectif poids sec, médecin référent..." />
           </div>
           <button className="bp" onClick={() => setShowModal(true)}
-            style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>Valider la prescription
+            style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}>
+            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider la prescription"}
           </button>
         </div>
       </div>

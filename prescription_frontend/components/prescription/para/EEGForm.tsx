@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { creerPrescriptionEEG } from '@/lib/api';
 
 type Urgence = "n" | "u" | "tu";
 const urgenceClasses: Record<Urgence, string> = { n: "un", u: "uu", tu: "utu" };
@@ -13,28 +14,65 @@ const EEG_TYPES = [
   "EEG per-opératoire",
 ];
 
-export default function EEGForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function EEGForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence]     = useState<Urgence>("n");
   const [alertes, setAlertes]     = useState("");
-  const [renseign, setRenseign]   = useState("");
-  const [eegType, setEegType]     = useState("");
+  const [renseignements, setRenseign]   = useState("");
+  const [typeEEG, setEegType]     = useState("");
   const [remarques, setRemarques] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast]         = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [apiError, setApiError]   = useState("");
 
-  const isFormValid = !!renseign.trim() && !!eegType;
+  const isFormValid = !!renseignements.trim() && !!typeEEG;
 
-  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
-  function handleSubmit() { setShowModal(false); showToast("Demande EEG transmise"); }
+  function showToast(msg: string) {
+    setToast(msg); setTimeout(() => setToast(""), 2800);
+  }
+
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError("");
+    try {
+      await creerPrescriptionEEG({
+        patientId: patient.id,
+        urgence,
+        alertes,
+        renseignements,
+        typeEEG,
+        remarques,
+      });
+      showToast("Demande EEG transmise");
+      // reset
+      setUrgence("n"); setAlertes(""); setRenseign(""); setEegType(""); setRemarques("");
+    } catch {
+      setApiError("Erreur lors de l'envoi. Vérifiez la connexion.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div>
+      {apiError && (
+        <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
+          {apiError}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
-        {/* COLONNE GAUCHE */}
+        {/* Colonne gauche : renseignements, type EEG */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 12 }}>
             <label className="lbl">Renseignements cliniques <span className="req">*</span></label>
-            <textarea rows={3} value={renseign} onChange={e => setRenseign(e.target.value)}
+            <textarea rows={3} value={renseignements} onChange={e => setRenseign(e.target.value)}
               placeholder="Contexte neurologique, symptômes, antécédents épileptiques, traitements en cours..." />
           </div>
           <div className="card" style={{ padding: 12 }}>
@@ -42,7 +80,7 @@ export default function EEGForm() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
               {EEG_TYPES.map(t => (
                 <label key={t} className="rc">
-                  <input type="radio" name="eeg-type" checked={eegType === t} onChange={() => setEegType(t)}
+                  <input type="radio" name="eeg-type" checked={typeEEG === t} onChange={() => setEegType(t)}
                     style={{ accentColor: "var(--navy)" }} />
                   <span>{t}</span>
                 </label>
@@ -51,7 +89,7 @@ export default function EEGForm() {
           </div>
         </div>
 
-        {/* COLONNE DROITE — sticky */}
+        {/* Colonne droite — sticky */}
         <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 8 }}>
             <label className="lbl">Degré d'urgence <span className="req">*</span></label>
@@ -77,8 +115,8 @@ export default function EEGForm() {
               placeholder="Informations supplémentaires pour le neurologue..." />
           </div>
           <button className="bp" onClick={() => setShowModal(true)}
-            style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>Valider la prescription
+            style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}>
+            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider la prescription"}
           </button>
         </div>
       </div>

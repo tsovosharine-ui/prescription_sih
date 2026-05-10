@@ -1,14 +1,22 @@
 "use client";
 import { useState } from "react";
+import { creerPrescriptionKine } from '@/lib/api';
 
 type Urgence = "n" | "u" | "tu";
 const urgenceClasses: Record<Urgence, string> = { n: "un", u: "uu", tu: "utu" };
 
 const KINE_TYPES = [
-  "Kinésithérapie respiratoire", "Mobilisation passive", "Mobilisation active",
-  "Renforcement musculaire", "Équilibre / Prévention des chutes",
-  "Rééducation à la marche", "Massage thérapeutique", "Drainage lymphatique",
-  "Hydrothérapie", "Autre",
+  "Rééducation motrice (membre supérieur)",
+  "Rééducation motrice (membre inférieur)",
+  "Rééducation rachidienne / lombaire",
+  "Rééducation neurologique (AVC, SEP…)",
+  "Kinésithérapie respiratoire",
+  "Rééducation périnéale",
+  "Drainage lymphatique manuel",
+  "Massage thérapeutique",
+  "Balnéothérapie",
+  "Rééducation de la marche",
+  "Autre",
 ];
 
 const CONTRE_INDICATIONS = [
@@ -19,11 +27,16 @@ const CONTRE_INDICATIONS = [
   "Appui interdit",
 ];
 
-export default function KineForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function KineForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence]       = useState<Urgence>("n");
   const [alertes, setAlertes]       = useState("");
-  const [renseign, setRenseign]     = useState("");
-  const [kineType, setKineType]     = useState("");
+  const [renseignements, setRenseign]     = useState("");
+  const [typeKine, setKineType]     = useState("");
   const [kineAutre, setKineAutre]   = useState("");
   const [diagnostic, setDiagnostic] = useState("");
   const [ciSelected, setCiSelected] = useState<string[]>([]);
@@ -33,16 +46,45 @@ export default function KineForm() {
   const [remarques, setRemarques]   = useState("");
   const [showModal, setShowModal]   = useState(false);
   const [toast, setToast]           = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [apiError, setApiError]     = useState("");
 
   function toggleCI(val: string) {
     setCiSelected(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
   }
 
-  const isFormValid = !!renseign.trim() && !!kineType &&
-    (kineType !== "Autre" || !!kineAutre.trim()) && !!diagnostic.trim() && !!objectifs.trim();
+  const isFormValid = !!renseignements.trim() && !!typeKine &&
+    (typeKine !== "Autre" || !!kineAutre.trim()) && !!diagnostic.trim() && !!objectifs.trim();
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
-  function handleSubmit() { setShowModal(false); showToast("Prescription kinésithérapie transmise"); }
+
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError("");
+    try {
+      await creerPrescriptionKine({
+        patientId: patient.id,
+        urgence,
+        alertes,
+        renseignements,
+        typeKine: typeKine === "Autre" ? kineAutre : typeKine,
+        diagnostic,
+        contreIndications: [...ciSelected, ciAutre ? ciAutreText : undefined].filter(Boolean),
+        objectifs,
+        remarques,
+      });
+      showToast("Prescription kinésithérapie transmise");
+      // reset
+      setUrgence("n"); setAlertes(""); setRenseign(""); setKineType(""); setKineAutre("");
+      setDiagnostic(""); setCiSelected([]); setCiAutre(false); setCiAutreText("");
+      setObjectifs(""); setRemarques("");
+    } catch {
+      setApiError("Erreur lors de l'envoi. Vérifiez la connexion.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div>
@@ -51,22 +93,28 @@ export default function KineForm() {
         <span>Le kinésithérapeute est un service à part : il reçoit la prescription et organise ses séances selon son planning propre.</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
-        {/* COLONNE GAUCHE */}
+      {apiError && (
+        <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
+          {apiError}
+        </div>
+      )}
+
+      <div className="g2-form mb12">
+        {/* Colonne gauche : renseignements, type, diagnostic, CI */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 12 }}>
             <label className="lbl">Renseignements cliniques <span className="req">*</span></label>
-            <textarea rows={3} value={renseign} onChange={e => setRenseign(e.target.value)} placeholder="Contexte clinique, résultats d'imagerie, données pertinentes..." />
+            <textarea rows={3} value={renseignements} onChange={e => setRenseign(e.target.value)} placeholder="Contexte clinique, résultats d'imagerie, données pertinentes..." />
           </div>
           <div className="card" style={{ padding: 12 }}>
             <div className="mb12">
               <label className="lbl">Type de kinésithérapie prescrite <span className="req">*</span></label>
-              <select value={kineType} onChange={e => setKineType(e.target.value)}>
+              <select value={typeKine} onChange={e => setKineType(e.target.value)}>
                 <option value="">— Sélectionner —</option>
                 {KINE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            {kineType === "Autre" && (
+            {typeKine === "Autre" && (
               <div className="mb12">
                 <label className="lbl">Préciser le type <span className="req">*</span></label>
                 <input type="text" value={kineAutre} onChange={e => setKineAutre(e.target.value)} placeholder="Décrire le type de kinésithérapie..." />
@@ -97,8 +145,8 @@ export default function KineForm() {
           </div>
         </div>
 
-        {/* COLONNE DROITE — sticky */}
-        <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Colonne droite : urgence compacte + objectifs + remarques */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 8 }}>
             <label className="lbl">Degré d'urgence <span className="req">*</span></label>
             <div className={`urgr ${urgenceClasses[urgence]}`} style={{ marginBottom: 8 }}>
@@ -126,8 +174,8 @@ export default function KineForm() {
             <textarea rows={2} value={remarques} onChange={e => setRemarques(e.target.value)} placeholder="Informations supplémentaires pour le kinésithérapeute..." />
           </div>
           <button className="bp" onClick={() => setShowModal(true)}
-            style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>Valider la prescription
+            style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}>
+            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider la prescription"}
           </button>
         </div>
       </div>

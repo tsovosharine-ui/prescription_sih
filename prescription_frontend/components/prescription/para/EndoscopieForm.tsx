@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { creerPrescriptionEndoscopie } from '@/lib/api';
 
 type Urgence = "n" | "u" | "tu";
 const urgenceClasses: Record<Urgence, string> = { n: "un", u: "uu", tu: "utu" };
@@ -13,7 +14,12 @@ const TYPES_ENDO = [
   "GPE (Gastrostomie percutanée endoscopique)",
 ];
 
-export default function EndoscopieForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function EndoscopieForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence] = useState<Urgence>("n");
   const [alertes, setAlertes] = useState("");
   const [renseignements, setRenseignements] = useState("");
@@ -22,17 +28,52 @@ export default function EndoscopieForm() {
   const [remarques, setRemarques] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const typeEffectif = typeExamen === "Autre" ? typeAutre.trim() : typeExamen;
   const isFormValid = renseignements.trim() !== "" && typeEffectif !== "";
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
-  function handleSubmit() { setShowModal(false); showToast("Prescription endoscopie envoyée"); }
+
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError("");
+    try {
+      await creerPrescriptionEndoscopie({
+        patientId: patient.id,
+        urgence,
+        alertes,
+        renseignements,
+        typeExamen: typeEffectif,
+        remarques,
+      });
+      showToast("Prescription endoscopie envoyée");
+      // reset
+      setRenseignements("");
+      setTypeExamen("");
+      setTypeAutre("");
+      setRemarques("");
+      setAlertes("");
+      setUrgence("n");
+    } catch {
+      setApiError("Erreur lors de l'envoi. Vérifiez la connexion.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
-        {/* COLONNE GAUCHE */}
+      {apiError && (
+        <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
+          {apiError}
+        </div>
+      )}
+
+      <div className="g2-form mb12">
+        {/* Colonne gauche : renseignements + type examen */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 12 }}>
             <label className="lbl">Renseignements cliniques <span className="req">*</span></label>
@@ -61,8 +102,8 @@ export default function EndoscopieForm() {
           </div>
         </div>
 
-        {/* COLONNE DROITE — sticky */}
-        <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Colonne droite : urgence compacte + remarques + bouton valider */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div className="card" style={{ padding: 8 }}>
             <label className="lbl">Degré d'urgence <span className="req">*</span></label>
             <div className={`urgr ${urgenceClasses[urgence]}`} style={{ marginBottom: 8 }}>
@@ -84,8 +125,8 @@ export default function EndoscopieForm() {
               placeholder="Informations supplémentaires pour l'équipe d'endoscopie..." />
           </div>
           <button className="bp" onClick={() => setShowModal(true)}
-            style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>Valider la prescription
+            style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}>
+            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider la prescription"}
           </button>
         </div>
       </div>

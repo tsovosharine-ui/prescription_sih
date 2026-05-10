@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { creerPrescriptionAnapath } from "@/lib/api";
 
 type Urgence = "n" | "u" | "tu";
 type AnaTab = "fcv" | "cyto" | "liq" | "bio" | "pos" | "poc" | "ext";
@@ -23,13 +24,20 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
   color: active ? "#fff" : "var(--txt2)", transition: "all .15s",
 });
 
-export default function AnapathForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function AnapathForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence]     = useState<Urgence>("n");
   const [alertes, setAlertes]     = useState("");
   const [renseign, setRenseign]   = useState("");
   const [tab, setTab]             = useState<AnaTab>("fcv");
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast]         = useState("");
+  const [loading, setLoading]     = useState(false);
+  const [apiError, setApiError]   = useState("");
 
   const [fcvService, setFcvService]     = useState("");
   const [fcvGPA, setFcvGPA]             = useState("");
@@ -116,7 +124,32 @@ export default function AnapathForm() {
   })();
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
-  function handleSubmit() { setShowModal(false); if (tab === "ext") setTimerActive(true); showToast("Demande Anapath transmise"); }
+
+  function buildData() {
+    if (tab === "fcv")  return { renseign: renseign, service: fcvService, gpa: fcvGPA, ddr: fcvDDR, menopause: fcvMeno, menarche: fcvMenarche, rapport: fcvRapport, contraception: fcvContra, traitement: fcvTtt, papLieu: fcvPapLieu, papNb: fcvPapNb, papDate: fcvPapDate, papRes: fcvPapRes, atcd: fcvAtcd, methode: fcvMeth, note: fcvNote };
+    if (tab === "cyto") return { renseign: renseign, service: cytoService, siege: cytoSiege, organe: cytoOrgane, fixateur: cytoFix, fixateurAutre: cytoFixAutre, note: cytoNotes };
+    if (tab === "liq")  return { renseign: renseign, service: liqService, unite: liqUnite, nature: liqNat, natureAutre: liqNatAutre, note: liqNotes };
+    if (tab === "bio" || tab === "pos" || tab === "poc") return { renseign: renseign, service: bioService, examAnt: bioExamAnt, resAnt: bioResAnt, gpa: bioGPA, ddr: bioDDR, menopause: bioMeno, atcd: bioAtcd, datePrelev: bioDatePrelev, fixateur: bioFixateur, organe: bioOrgane, nature: bioNature, natureAutre: bioNatureAutre, suspicion: bioSuspicion, faitA: bioFaitA, faitLe: bioFaitLe, note: bioNote };
+    if (tab === "ext")  return { renseign: renseign, service: extService, chirurgien: extChirurgien, poste: extPoste, intervention: extIntervention, nature: extNature, organe: extOrgane, question: extQuestion, heure: extHeure, note: extNote };
+  }
+
+  async function handleSubmit() {
+    setShowModal(false); setLoading(true); setApiError("");
+    try {
+      await creerPrescriptionAnapath({
+        patientId: patient.id, urgence, alertes, typeExamen: tab, data: buildData() });
+      if (tab === "ext") setTimerActive(true);
+      showToast("Demande Anapath transmise");
+      setRenseign(""); setAlertes(""); setUrgence("n");
+      setFcvNote(""); setFcvGPA(""); setFcvDDR(""); setFcvMeno(""); setFcvMenarche(""); setFcvRapport(""); setFcvContra(""); setFcvTtt(""); setFcvPapLieu(""); setFcvPapNb(""); setFcvPapDate(""); setFcvPapRes(""); setFcvAtcd(""); setFcvMeth(""); setFcvService("");
+      setCytoSiege(""); setCytoOrgane(""); setCytoFix(""); setCytoFixAutre(""); setCytoNotes(""); setCytoService("");
+      setLiqNat(""); setLiqNatAutre(""); setLiqNotes(""); setLiqService(""); setLiqUnite("");
+      setBioOrgane(""); setBioNature(""); setBioNatureAutre(""); setBioSuspicion(""); setBioNote(""); setBioService(""); setBioExamAnt(""); setBioResAnt(""); setBioGPA(""); setBioDDR(""); setBioMeno(""); setBioAtcd(""); setBioDatePrelev(""); setBioFixateur(""); setBioFaitA(""); setBioFaitLe("");
+      setExtChirurgien(""); setExtPoste(""); setExtIntervention(""); setExtNature(""); setExtOrgane(""); setExtQuestion(""); setExtHeure(""); setExtNote(""); setExtService("");
+    } catch { setApiError("Erreur lors de l'envoi. Vérifiez la connexion."); }
+    finally { setLoading(false); }
+  }
+
   function bioInfoLabel() {
     if (tab === "pos") return "POS (Pièce Opératoire Simple)";
     if (tab === "poc") return "POC (Pièce Opératoire Complexe)";
@@ -128,7 +161,6 @@ export default function AnapathForm() {
 
       {/* COLONNE GAUCHE */}
       <div>
-        {/* Renseignements (sauf Extemporané) */}
         {tab !== "ext" && (
           <div className="card mb12">
             <label className="lbl">Renseignements cliniques <span className="req">*</span></label>
@@ -136,7 +168,6 @@ export default function AnapathForm() {
           </div>
         )}
 
-        {/* Tabs */}
         <div className="card mb12">
           <label className="lbl">Type d'examen <span className="req">*</span></label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
@@ -146,7 +177,6 @@ export default function AnapathForm() {
           </div>
         </div>
 
-        {/* FCV */}
         {tab === "fcv" && (
           <div className="card mb12">
             <div className="info-note mb12"><span className="ms">info</span><span>FCV / Pap test — Les informations personnelles sont rattachées via l'ID.</span></div>
@@ -174,7 +204,6 @@ export default function AnapathForm() {
           </div>
         )}
 
-        {/* CYTOPONCTION */}
         {tab === "cyto" && (
           <div className="card mb12">
             <div className="info-note mb12"><span className="ms">info</span><span>Cytoponction — Informations personnelles rattachées via l'ID patient.</span></div>
@@ -190,7 +219,6 @@ export default function AnapathForm() {
           </div>
         )}
 
-        {/* LIQUIDE */}
         {tab === "liq" && (
           <div className="card mb12">
             <div className="info-note mb12"><span className="ms">info</span><span>Cytologie sur liquide — Informations personnelles rattachées via l'ID patient.</span></div>
@@ -205,7 +233,6 @@ export default function AnapathForm() {
           </div>
         )}
 
-        {/* BIOPSIE / POS / POC */}
         {(tab === "bio" || tab === "pos" || tab === "poc") && (
           <div className="card mb12">
             <div className="info-note mb12"><span className="ms">info</span><span>{bioInfoLabel()} — Informations personnelles rattachées via l'ID patient.</span></div>
@@ -238,7 +265,6 @@ export default function AnapathForm() {
           </div>
         )}
 
-        {/* EXTEMPORANÉ */}
         {tab === "ext" && (
           <div className="card mb12">
             {timerActive && (
@@ -291,7 +317,6 @@ export default function AnapathForm() {
             style={{ background: "var(--red-lt)", border: "1.5px solid var(--red-bdr)", padding: '8px 12px', boxSizing: 'border-box', width: '100%' }} />
         </div>
 
-        {/* Récap tab actif */}
         <div className="card mb12" style={{ padding: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <span className="ms" style={{ fontSize: 15, color: 'var(--navy)' }}>biotech</span>
@@ -302,13 +327,14 @@ export default function AnapathForm() {
           </span>
         </div>
 
+        {apiError && <div style={{background:"var(--red-lt)",border:"1px solid var(--red-bdr)",borderRadius:8,padding:"10px 12px",fontSize:12,color:"var(--red)",marginBottom:12}}>{apiError}</div>}
+
         <button className="bp" onClick={() => setShowModal(true)}
-          style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", width: '100%' }}>
-          <span className="ms">check_circle</span>Valider
+          style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", width: '100%' }}>
+          <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider"}
         </button>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div className="mbox">
