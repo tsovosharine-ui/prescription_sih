@@ -1,0 +1,13 @@
+declare class ParametreDto {
+    parametre: string;
+    frequence: string;
+    duree?: string;
+    seuil?: string;
+}
+export declare class CreateSurveillanceDto {
+    patientId: string;
+    notes?: string;
+    notifierInfirmier?: boolean;
+    parametres: ParametreDto[];
+}
+export {};
