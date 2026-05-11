@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from 'react';
 import PrescriptionLayout, { Section } from '@/components/prescription/PrescriptionLayout';
 import MedicaleForm from '@/components/prescription/MedicaleForm';
@@ -13,7 +14,37 @@ import KineForm from '@/components/prescription/para/KineForm';
 import DiaryseForm from '@/components/prescription/para/DiaryseForm';
 import EndoscopieForm from '@/components/prescription/para/EndoscopieForm';
 import BlocForm from '@/components/prescription/BlocForm';
-import { getToken, login, getPatient, getCurrentUser } from '@/lib/api';
+import { login } from '@/lib/api';
+
+const API_URL = 'http://localhost:3001';
+
+async function fetchWithToken(url: string, token: string) {
+  const res = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.json();
+}
+
+async function getValidToken(): Promise<string> {
+  const stored = localStorage.getItem('token');
+  if (stored) {
+    // Vérifier si le token est encore valide
+    try {
+      await fetchWithToken(`${API_URL}/auth/profile`, stored);
+      return stored;
+    } catch {
+      // Token expiré ou invalide — on refait le login
+      localStorage.removeItem('token');
+    }
+  }
+  const auth = await login('jean@chu.mg', 'test1234');
+  localStorage.setItem('token', auth.access_token);
+  return auth.access_token;
+}
 
 export default function Home() {
   const [patient, setPatient] = useState<any>(null);
@@ -23,26 +54,18 @@ export default function Home() {
 
   useEffect(() => {
     async function init() {
-      const token = getToken();
-      if (!token) {
-        try {
-          const auth = await login('jean@chu.mg', 'test1234');
-          localStorage.setItem('token', auth.access_token);
-        } catch {
-          setError("Échec de l'authentification.");
-          setLoading(false);
-          return;
-        }
-      }
       try {
+        const token = await getValidToken();
+
         const [patientData, userData] = await Promise.all([
-          getPatient('permanent/IP-2026-00001'),
-          getCurrentUser(),
+          fetchWithToken(`${API_URL}/patients/permanent/IP-2026-00001`, token),
+          fetchWithToken(`${API_URL}/auth/profile`, token),
         ]);
         setPatient(patientData);
         setPrescripteur(userData);
-      } catch (err) {
-        setError("Impossible de charger les données.");
+      } catch (err: any) {
+        console.error("ERREUR:", err?.message, err);
+        setError("Impossible de charger les données : " + err?.message);
       } finally {
         setLoading(false);
       }

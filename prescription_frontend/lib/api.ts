@@ -17,11 +17,11 @@ export function getToken(): string | null {
 }
 
 export function setToken(token: string) {
-  localStorage.setItem('token', token);
+  if (typeof window !== 'undefined') localStorage.setItem('token', token);
 }
 
 export function removeToken() {
-  localStorage.removeItem('token');
+  if (typeof window !== 'undefined') localStorage.removeItem('token');
 }
 
 export async function getCurrentUser() {
@@ -72,108 +72,84 @@ async function handleResponse(res: Response) {
 
 export async function creerPrescriptionMedicale(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/medicale`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionNonMedicale(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/non-medicale`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionSurveillance(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/surveillance`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionTransfusion(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/transfusion`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionBloc(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/bloc`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionLabo(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/labo`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionImagerie(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/imagerie`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionAnapath(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/anapath`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionEEG(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/eeg`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionKine(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/kine`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionDialyse(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/dialyse`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
 
 export async function creerPrescriptionEndoscopie(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/endoscopie`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(data),
+    method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
   });
   return handleResponse(res);
 }
@@ -188,8 +164,7 @@ export async function getPrescriptionsPatient(type: string, patientId: string) {
 
 export async function notifierInfirmierMedicale(prescriptionId: string) {
   const res = await fetch(`${API_URL}/notifications/medicale/${prescriptionId}`, {
-    method: 'POST',
-    headers: authHeaders(),
+    method: 'POST', headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Erreur notification');
   return res.json();
@@ -197,8 +172,7 @@ export async function notifierInfirmierMedicale(prescriptionId: string) {
 
 export async function notifierInfirmierNonMedicale(prescriptionId: string) {
   const res = await fetch(`${API_URL}/notifications/non-medicale/${prescriptionId}`, {
-    method: 'POST',
-    headers: authHeaders(),
+    method: 'POST', headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Erreur notification');
   return res.json();
@@ -206,8 +180,7 @@ export async function notifierInfirmierNonMedicale(prescriptionId: string) {
 
 export async function notifierInfirmierSurveillance(prescriptionId: string) {
   const res = await fetch(`${API_URL}/notifications/surveillance/${prescriptionId}`, {
-    method: 'POST',
-    headers: authHeaders(),
+    method: 'POST', headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Erreur notification');
   return res.json();
@@ -215,9 +188,7 @@ export async function notifierInfirmierSurveillance(prescriptionId: string) {
 
 export async function updateStatutPrescription(type: string, id: string, statut: string) {
   const res = await fetch(`${API_URL}/prescriptions/${type}/${id}/statut`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify({ statut }),
+    method: 'PUT', headers: authHeaders(), body: JSON.stringify({ statut }),
   });
   if (!res.ok) throw new Error('Erreur mise à jour statut');
   return res.json();
