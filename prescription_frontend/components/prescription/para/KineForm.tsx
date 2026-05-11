@@ -48,7 +48,6 @@ export default function KineForm({ patient, prescripteur }: Props) {
 
   return (
     <div>
-      <div className="info-note mb12"><span className="ms">info</span><span>Le kinésithérapeute reçoit la prescription et planifie ses séances.</span></div>
       {apiError && <div style={{background:"var(--red-lt)",border:"1px solid var(--red-bdr)",borderRadius:8,padding:"10px 12px",fontSize:12,color:"var(--red)",marginBottom:12}}>{apiError}</div>}
       <div className="g2-form mb12">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

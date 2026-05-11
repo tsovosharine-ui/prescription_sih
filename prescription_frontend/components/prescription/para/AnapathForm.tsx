@@ -280,7 +280,6 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
 
         {tab === "fcv" && (
           <div className="card mb12">
-            <div className="info-note mb12"><span className="ms">info</span><span>FCV / Pap test — Les informations personnelles sont rattachées via l'ID.</span></div>
             <div className="mb12"><label className="lbl">Unité / Service demandeur</label><input type="text" value={fcvService} onChange={e => setFcvService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
             <div className="sh mb12">Antécédents</div>
             <div className="g2 mb12">
@@ -330,7 +329,6 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
 
         {tab === "cyto" && (
           <div className="card mb12">
-            <div className="info-note mb12"><span className="ms">info</span><span>Cytoponction — Informations personnelles rattachées via l'ID patient.</span></div>
             <div className="mb12"><label className="lbl">Unité / Service demandeur</label><input type="text" value={cytoService} onChange={e => setCytoService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
             <div className="g2 mb12">
               <div><label className="lbl">Siège de la ponction <span className="req">*</span></label><input type="text" value={cytoSiege} onChange={e => setCytoSiege(e.target.value)} placeholder="Ex : sein gauche, creux axillaire..." /></div>
@@ -357,7 +355,6 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
 
         {tab === "liq" && (
           <div className="card mb12">
-            <div className="info-note mb12"><span className="ms">info</span><span>Cytologie sur liquide — Informations personnelles rattachées via l'ID patient.</span></div>
             <div className="g2 mb12">
               <div><label className="lbl">Unité / Service demandeur</label><input type="text" value={liqService} onChange={e => setLiqService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
               <div><label className="lbl">Unité de soins (si hospitalisé)</label><input type="text" value={liqUnite} onChange={e => setLiqUnite(e.target.value)} placeholder="Service / Unité" /></div>
@@ -383,7 +380,6 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
 
         {(tab === "bio" || tab === "pos" || tab === "poc") && (
           <div className="card mb12">
-            <div className="info-note mb12"><span className="ms">info</span><span>{bioInfoLabel()} — Informations personnelles rattachées via l'ID patient.</span></div>
             <div className="mb12"><label className="lbl">Unité / Service demandeur</label><input type="text" value={bioService} onChange={e => setBioService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
             <div className="sh mb12">Antécédents</div>
             <div className="g2 mb12">

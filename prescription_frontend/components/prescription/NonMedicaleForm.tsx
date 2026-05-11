@@ -191,10 +191,6 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
 
       {/* COLONNE GAUCHE */}
       <div>
-        <div className="info-note mb12">
-          <span className="ms">info</span>
-          <span>Prescription non médicamenteuse : régimes, mobilisation, nursing, hygiène...</span>
-        </div>
         <div className="card mb12" style={{ padding: 12 }}>
           <div className="mb12">
             <label className="lbl">Type de prescription <span className="req">*</span></label>

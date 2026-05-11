@@ -345,10 +345,6 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
             {/* === GESTE INTERVENTIONNEL === */}
             {imgType === "geste" && (
               <div>
-                <div className="info-note mb12">
-                  <span className="ms">info</span>
-                  <span>Geste interventionnel radiologique — ponction, biopsie écho-guidée, drainage, etc.</span>
-                </div>
                 <label className="lbl">Type de geste <span className="req">*</span></label>
                 <input type="text" className="mb12" value={gesteType} onChange={e => setGesteType(e.target.value)} placeholder="Ex : ponction d'ascite, biopsie hépatique écho-guidée..." />
                 <label className="lbl">Précisions complémentaires</label>
@@ -359,10 +355,6 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
             {/* === RADIO SPÉCIALE === */}
             {imgType === "rxsp" && (
               <div>
-                <div className="info-note mb12">
-                  <span className="ms">info</span>
-                  <span>Radiographies spéciales et examens contrastés — nécessitent une préparation et/ou une injection spécifique.</span>
-                </div>
                 <label className="lbl">Type d'examen <span className="req">*</span></label>
                 <select className="mb12" value={rxspType} onChange={e => setRxspType(e.target.value)}>
                   <option value="">— Sélectionner —</option>

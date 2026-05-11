@@ -180,7 +180,6 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
 
   return (
     <div>
-      <div className="info-note mb12"><span className="ms">info</span><span>Quand l'infirmier enregistre un paramètre surveillé, le résultat est transféré automatiquement dans l'observation médicale.</span></div>
 
       {apiError && <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>{apiError}</div>}
 

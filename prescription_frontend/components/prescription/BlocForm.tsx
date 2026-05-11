@@ -142,10 +142,6 @@ export default function BlocForm({ patient, prescripteur }: Props) {
               <label className="lbl">Nom du chirurgien prescripteur</label>
               <input type="text" value={chirurgien} onChange={e => setChirurgien(e.target.value)} placeholder="Dr. ________________" />
             </div>
-            <div className="info-note" style={{ marginBottom: 0 }}>
-              <span className="ms">info</span>
-              <span>La signature numérique sera apposée par le <strong>Professeur anesthésiste lors du CPA</strong>.</span>
-            </div>
           </div>
           <button
             className="bp"
