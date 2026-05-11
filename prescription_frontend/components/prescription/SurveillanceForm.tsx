@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionSurveillance, getPrescriptionsPatient, notifierInfirmierSurveillance, updateStatutPrescription } from '@/lib/api';
 
 interface SvItem {
-  id: string; parametre: string; parametre: string; customNom: string; customDesc: string;
+  id: string; parametre: string; parametreLabel: string; customNom: string; customDesc: string;
   customUnite: string; customTarget: string; taille: string; sngTypes: string[]; sngRemarques: string;
   drainLocalisation: string; drainTypes: string[]; frequence: string; duree: string; seuil: string;
 }
@@ -14,7 +15,6 @@ interface SurveillanceEnCours {
   parametres: { parametre: string; frequence: string; duree?: string; seuil?: string }[];
   notifierInfirmier?: boolean;
   prescripteur?: { nom: string };
-  createdAt: string;
 }
 
 const PARAMS = [
@@ -70,32 +70,16 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
   const [dureeUnite, setDureeUnite] = useState('jours');
   const [seuil, setSeuil] = useState('');
   const [items, setItems] = useState<SvItem[]>([]); const [notifOn, setNotifOn] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false); const [toast, setToast] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<SurveillanceEnCours[]>([]);
 
-  const isAddValid = parametre && frequence && duree.trim() && !isNaN(Number(duree));
   const canValidate = items.length > 0;
+  const isAddValid = parametre && frequence && duree.trim() && (Number(duree) > 0);
   const urgenceClasses: Record<string, string> = { n: "un", u: "uu", tu: "utu" };
-
-  function parseDureeMs(d: string): number {
-    const parts = d.split(' ');
-    if (parts.length !== 2) return 0;
-    const val = Number(parts[0]);
-    const unit = parts[1];
-    if (isNaN(val)) return 0;
-    switch (unit) {
-      case 'heures': return val * 3600_000;
-      case 'jours':  return val * 86400_000;
-      case 'mois':   return val * 30 * 86400_000;
-      default: return 0;
-    }
-  }
-
-  // pour les surveillances, pas de dateDebut/duree dans les parametres frontend => pas de filtrage auto
-  // mais on garde la possibilité de terminer manuellement
 
   useEffect(() => {
     async function fetchSurveillances() {
@@ -110,8 +94,17 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
   function toggleCheck(list: string[], setList: (v: string[]) => void, val: string) { setList(list.includes(val) ? list.filter(x => x !== val) : [...list, val]); }
 
+  function validateAddForm(): boolean {
+    const newErrors: Record<string, string> = {};
+    if (!parametre) newErrors.parametre = 'Le paramètre est requis';
+    if (!frequence) newErrors.frequence = 'La fréquence est requise';
+    if (!duree.trim() || isNaN(Number(duree))) newErrors.duree = 'Veuillez entrer un nombre valide';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   function handleAdd() {
-    if (!isAddValid) return;
+    if (!validateAddForm()) return;
     const dureeComplete = `${duree} ${dureeUnite}`;
     setItems(prev => [...prev, {
       id: Date.now().toString(), parametre, parametreLabel: parametre === 'custom' ? customNom || 'Paramètre personnalisé' : PARAM_LABEL[parametre] ?? parametre,
@@ -120,7 +113,7 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
     }]);
     setParametre(''); setCustomNom(''); setCustomDesc(''); setCustomUnite(''); setCustomTarget(''); setTaille('');
     setSngTypes([]); setSngRemarques(''); setDrainLocalisation(''); setDrainTypes([]);
-    setFrequence(''); setDuree(''); setDureeUnite('jours'); setSeuil('');
+    setFrequence(''); setDuree(''); setDureeUnite('jours'); setSeuil(''); setErrors({});
   }
   function handleDelete(id: string) { setItems(prev => prev.filter(i => i.id !== id)); }
 
@@ -138,6 +131,22 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
     } catch { console.error('Erreur terminaison'); }
   }
 
+  function buildSurvSummary(itemsList: SvItem[], notifier: boolean): string {
+    const now = new Date().toLocaleString('fr-FR');
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    itemsList.forEach(item => {
+      const label = PARAM_LABEL[item.parametre] || item.parametreLabel;
+      html += `
+        <div class="medicament">
+          <span class="nom">${label}</span>
+          <span class="detail">Fréquence : ${item.frequence} · Durée : ${item.duree}${item.seuil ? ` · Seuil : ${item.seuil}` : ''}.</span>
+        </div>`;
+    });
+    if (notifier) html += `<div class="notice"><span class="badge badge-success">✅ Infirmier notifié</span></div>`;
+    html += `</div>`;
+    return html;
+  }
+
   async function handleSubmit() {
     setShowModal(false);
     setLoading(true);
@@ -150,9 +159,9 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
         parametres: items.map(({ id, parametreLabel, customNom, customDesc, customUnite, customTarget, taille, sngTypes, sngRemarques, drainLocalisation, drainTypes, ...rest }) => rest),
       });
       if (notifOn && result?.id) {
-        console.log('Envoi notification surveillance pour id', result.id);
         notifierInfirmierSurveillance(result.id).catch(e => console.error('Erreur notification surveillance', e));
       }
+      openSummaryWindow('Prescription de surveillance', buildSurvSummary(items, notifOn));
       showToast('Surveillance validée');
       setItems([]);
       setNotes('');
@@ -179,11 +188,13 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
         {/* COLONNE GAUCHE */}
         <div>
           <div className="card mb12" style={{ padding: 12 }}>
-            <div className="mb12"><label className="lbl">Paramètre à surveiller <span className="req">*</span></label>
-              <select value={parametre} onChange={e => setParametre(e.target.value)}>
+            <div className="mb12">
+              <label className="lbl">Paramètre à surveiller <span className="req">*</span></label>
+              <select value={parametre} onChange={e => { setParametre(e.target.value); if (errors.parametre) setErrors({...errors, parametre: ''}); }} style={errors.parametre ? { borderColor: 'var(--red)' } : {}}>
                 <option value="">Sélectionner un paramètre</option>
                 {PARAMS.map(g => <optgroup key={g.group} label={g.group}>{g.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</optgroup>)}
               </select>
+              {errors.parametre && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.parametre}</div>}
             </div>
             {desc && <div style={{ background: 'var(--navy-lt)', border: '1px solid var(--navy)', borderRadius: 9, padding: 11, marginBottom: 12, fontSize: 12, color: 'var(--navy)' }}>{desc}</div>}
             {parametre === 'custom' && (
@@ -204,17 +215,24 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
               </div>
             )}
             <div className="g2 mb12">
-              <div><label className="lbl">Fréquence <span className="req">*</span></label><select value={frequence} onChange={e => setFrequence(e.target.value)}><option value="">Sélectionner</option>{FREQ_OPTIONS.map(f => <option key={f}>{f}</option>)}</select></div>
+              <div>
+                <label className="lbl">Fréquence <span className="req">*</span></label>
+                <select value={frequence} onChange={e => { setFrequence(e.target.value); if (errors.frequence) setErrors({...errors, frequence: ''}); }} style={errors.frequence ? { borderColor: 'var(--red)' } : {}}>
+                  <option value="">Sélectionner</option>{FREQ_OPTIONS.map(f => <option key={f}>{f}</option>)}
+                </select>
+                {errors.frequence && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequence}</div>}
+              </div>
               <div>
                 <label className="lbl">Durée</label>
                 <div className="g2">
-                  <input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 48" />
+                  <input type="text" value={duree} onChange={e => { setDuree(e.target.value); if (errors.duree) setErrors({...errors, duree: ''}); }} placeholder="Ex : 48" style={errors.duree ? { borderColor: 'var(--red)' } : {}} />
                   <select value={dureeUnite} onChange={e => setDureeUnite(e.target.value)}>
                     <option value="heures">heures</option>
                     <option value="jours">jours</option>
                     <option value="mois">mois</option>
                   </select>
                 </div>
+                {errors.duree && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.duree}</div>}
               </div>
             </div>
             <div className="mb12"><label className="lbl">Valeurs cibles / Seuils d'alerte</label><input type="text" value={seuil} onChange={e => setSeuil(e.target.value)} placeholder="Ex : TA > 160/90 → alerter médecin..." /></div>

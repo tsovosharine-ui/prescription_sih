@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionTransfusion } from '@/lib/api';
 
 type Urgence = "n" | "u" | "tu";
@@ -31,6 +32,28 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
   const isFormValid = renseignements.trim() && groupage && produit && quantite.trim();
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
 
+  function buildTransfusionSummary(): string {
+    const now = new Date().toLocaleString('fr-FR');
+    const urgLabel = { n: 'Normale', u: 'Urgent', tu: 'STAT' }[urgence];
+    const prodLabel = { 'sang-total': 'Sang total', cgr: 'Culot globulaire', pfc: 'Plasma frais-congelé', prp: 'Plasma riche en plaquettes' }[produit];
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    html += `<div class="medicament"><span class="nom">Urgence :</span> <span class="detail">${urgLabel}</span></div>`;
+    html += `<div class="medicament"><span class="nom">Renseignements :</span> <span class="detail">${renseignements}</span></div>`;
+    html += `<div class="medicament"><span class="nom">Groupe :</span> <span class="detail">${groupage}</span></div>`;
+    if (hb) html += `<div class="medicament"><span class="nom">Hb :</span> <span class="detail">${hb} g/l</span></div>`;
+    html += `<div class="medicament"><span class="nom">Produit :</span> <span class="detail">${prodLabel}</span></div>`;
+    html += `<div class="medicament"><span class="nom">Quantité :</span> <span class="detail">${quantite}</span></div>`;
+    if (datePrevue) html += `<div class="medicament"><span class="nom">Date prévue :</span> <span class="detail">${datePrevue}</span></div>`;
+    if (alertes) html += `<div class="notice">⚠️ ${alertes}</div>`;
+    if (atcd) {
+      html += `<div class="notice">🔁 Antécédent de transfusion`;
+      if (incident) html += ` — ${incident}`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
   async function handleSubmit() {
     setShowModal(false);
     setLoading(true);
@@ -51,6 +74,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
         datePrevue: datePrevue || undefined,
         notes,
       });
+      openSummaryWindow('Transfusion sanguine', buildTransfusionSummary());
       showToast('Prescription transfusion envoyée au dépôt de sang');
       // reset
       setUrgence("n"); setAlertes(''); setRenseignements(''); setAtcd(false); setIncident('');

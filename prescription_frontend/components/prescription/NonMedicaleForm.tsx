@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionNonMedicale, getPrescriptionsPatient, notifierInfirmierNonMedicale, updateStatutPrescription } from '@/lib/api';
 
 interface NMItem {
@@ -8,7 +9,7 @@ interface NMItem {
   type: string;
   typeLabel: string;
   description: string;
-  duree: string;            // ex: "7 jours"
+  duree: string;
   frequence: string;
   dateDebut: string;
   heureDebut: string;
@@ -20,7 +21,6 @@ interface PrescriptionNonMedEnCours {
   items: { typeLabel: string; description: string; duree?: string; frequence?: string; dateDebut?: string }[];
   notifierInfirmier?: boolean;
   prescripteur?: { nom: string };
-  createdAt: string;
 }
 
 const TYPE_OPTIONS = [
@@ -45,24 +45,24 @@ interface Props {
 export default function NonMedicaleForm({ patient, prescripteur }: Props) {
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
-  const [duree, setDuree] = useState('');             // nombre
-  const [dureeUnite, setDureeUnite] = useState('jours'); // heures, jours, mois
+  const [duree, setDuree] = useState('');
+  const [dureeUnite, setDureeUnite] = useState('jours');
   const [frequence, setFrequence] = useState('');
   const [dateDebut, setDateDebut] = useState('');
   const [heureDebut, setHeureDebut] = useState('');
   const [instructions, setInstructions] = useState('');
   const [items, setItems] = useState<NMItem[]>([]);
   const [notifOn, setNotifOn] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<PrescriptionNonMedEnCours[]>([]);
 
-  const isAddValid = type && description.trim() && duree.trim() && !isNaN(Number(duree));
   const canValidate = items.length > 0;
+  const isAddValid = type && description.trim() && duree.trim() && (Number(duree) > 0);
 
-  // Convertir une durée texte ("7 jours") en millisecondes
   function parseDureeMs(d: string): number {
     const parts = d.split(' ');
     if (parts.length !== 2) return 0;
@@ -77,7 +77,6 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
     }
   }
 
-  // Filtrer les prescriptions expirées
   function filterExpired(prescriptions: PrescriptionNonMedEnCours[]): PrescriptionNonMedEnCours[] {
     const now = Date.now();
     return prescriptions.filter(p => {
@@ -101,8 +100,17 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
 
+  function validateAddForm(): boolean {
+    const newErrors: Record<string, string> = {};
+    if (!type) newErrors.type = 'Le type est requis';
+    if (!description.trim()) newErrors.description = 'La description est requise';
+    if (!duree.trim() || isNaN(Number(duree))) newErrors.duree = 'Veuillez entrer un nombre valide';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   function handleAdd() {
-    if (!isAddValid) return;
+    if (!validateAddForm()) return;
     const dureeComplete = `${duree} ${dureeUnite}`;
     const typeLabel = TYPE_OPTIONS.find(o => o.value === type)?.label ?? type;
     setItems(prev => [...prev, {
@@ -111,17 +119,38 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
       dateDebut, heureDebut, instructions: instructions.trim(),
     }]);
     setType(''); setDescription(''); setDuree(''); setDureeUnite('jours'); setFrequence('');
-    setDateDebut(''); setHeureDebut(''); setInstructions('');
+    setDateDebut(''); setHeureDebut(''); setInstructions(''); setErrors({});
   }
 
   function handleDelete(id: string) { setItems(prev => prev.filter(i => i.id !== id)); }
-  async function terminerPrescription(id: string) { try { await updateStatutPrescription('non-medicale', id, 'TERMINEE'); await refreshPrescriptions(); } catch { console.error('Erreur terminaison prescription'); } }
 
   async function refreshPrescriptions() {
     try {
       const data = await getPrescriptionsPatient('non-medicale', patient.id);
       setPrescriptionsEnCours(filterExpired(data));
     } catch {}
+  }
+
+  async function terminerPrescription(id: string) {
+    try {
+      await updateStatutPrescription('non-medicale', id, 'TERMINEE');
+      await refreshPrescriptions();
+    } catch { console.error('Erreur terminaison'); }
+  }
+
+  function buildNMSummary(itemsList: NMItem[], notifier: boolean): string {
+    const now = new Date().toLocaleString('fr-FR');
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    itemsList.forEach(item => {
+      html += `
+        <div class="medicament">
+          <span class="nom">${item.typeLabel}</span>
+          <span class="detail">${item.description} · Durée : ${item.duree}${item.frequence ? ` · ${item.frequence}` : ''}${item.instructions ? ` · ${item.instructions}` : ''}.</span>
+        </div>`;
+    });
+    if (notifier) html += `<div class="notice"><span class="badge badge-success">✅ Infirmier notifié</span></div>`;
+    html += `</div>`;
+    return html;
   }
 
   async function handleValidate() {
@@ -139,6 +168,7 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
       if (notifOn && result?.id) {
         notifierInfirmierNonMedicale(result.id).catch(e => console.error('Erreur notification non medicale', e));
       }
+      openSummaryWindow('Prescription non médicamenteuse', buildNMSummary(items, notifOn));
       showToast('Prescription non médicamenteuse validée');
       setItems([]);
       setNotifOn(false);
@@ -168,27 +198,30 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
         <div className="card mb12" style={{ padding: 12 }}>
           <div className="mb12">
             <label className="lbl">Type de prescription <span className="req">*</span></label>
-            <select value={type} onChange={e => setType(e.target.value)}>
+            <select value={type} onChange={e => { setType(e.target.value); if (errors.type) setErrors({...errors, type: ''}); }} style={errors.type ? { borderColor: 'var(--red)' } : {}}>
               <option value="">Sélectionner un type</option>
               {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
+            {errors.type && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.type}</div>}
           </div>
           <div className="mb12">
             <label className="lbl">Description précise <span className="req">*</span></label>
-            <input type="text" placeholder="Ex : Régime sans sel strict..." value={description} onChange={e => setDescription(e.target.value)} />
+            <input type="text" placeholder="Ex : Régime sans sel strict..." value={description} onChange={e => { setDescription(e.target.value); if (errors.description) setErrors({...errors, description: ''}); }} style={errors.description ? { borderColor: 'var(--red)' } : {}} />
+            {errors.description && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.description}</div>}
           </div>
           <div className="g2 mb12">
             <div><label className="lbl">Fréquence</label><input type="text" placeholder="Ex : 2× par jour..." value={frequence} onChange={e => setFrequence(e.target.value)} /></div>
             <div>
               <label className="lbl">Durée</label>
               <div className="g2">
-                <input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 7" />
+                <input type="text" value={duree} onChange={e => { setDuree(e.target.value); if (errors.duree) setErrors({...errors, duree: ''}); }} placeholder="Ex : 7" style={errors.duree ? { borderColor: 'var(--red)' } : {}} />
                 <select value={dureeUnite} onChange={e => setDureeUnite(e.target.value)}>
                   <option value="heures">heures</option>
                   <option value="jours">jours</option>
                   <option value="mois">mois</option>
                 </select>
               </div>
+              {errors.duree && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.duree}</div>}
             </div>
           </div>
           <div className="g2 mb12">
@@ -231,7 +264,6 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
                   {p.notifierInfirmier && <span style={{ display: 'block', fontSize: 10, color: 'var(--navy)', marginTop: 2 }}>Infirmier notifié</span>}
                 </div>
               ))}
-              {/* Bouton pour terminer la prescription */}
               <button
                 onClick={() => terminerPrescription(p.id)}
                 title="Terminer cette prescription"

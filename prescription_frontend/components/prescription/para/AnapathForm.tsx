@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionAnapath } from "@/lib/api";
 
 type Urgence = "n" | "u" | "tu";
@@ -39,6 +40,7 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
   const [loading, setLoading]     = useState(false);
   const [apiError, setApiError]   = useState("");
 
+  // FCV
   const [fcvService, setFcvService]     = useState("");
   const [fcvGPA, setFcvGPA]             = useState("");
   const [fcvDDR, setFcvDDR]             = useState("");
@@ -55,19 +57,22 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
   const [fcvMeth, setFcvMeth]           = useState("");
   const [fcvNote, setFcvNote]           = useState("");
 
-  const [cytoService, setCytoService]   = useState("");
-  const [cytoSiege, setCytoSiege]       = useState("");
-  const [cytoOrgane, setCytoOrgane]     = useState("");
-  const [cytoFix, setCytoFix]           = useState("");
-  const [cytoFixAutre, setCytoFixAutre] = useState("");
-  const [cytoNotes, setCytoNotes]       = useState("");
+  // Cytoponction
+  const [cytoService, setCytoService]       = useState("");
+  const [cytoSiege, setCytoSiege]           = useState("");
+  const [cytoOrgane, setCytoOrgane]         = useState("");
+  const [cytoFix, setCytoFix]               = useState("");
+  const [cytoFixAutre, setCytoFixAutre]     = useState("");
+  const [cytoNotes, setCytoNotes]           = useState("");
 
+  // Liquide
   const [liqService, setLiqService]     = useState("");
   const [liqUnite, setLiqUnite]         = useState("");
   const [liqNat, setLiqNat]             = useState("");
   const [liqNatAutre, setLiqNatAutre]   = useState("");
   const [liqNotes, setLiqNotes]         = useState("");
 
+  // Biopsie / POS / POC
   const [bioService, setBioService]         = useState("");
   const [bioExamAnt, setBioExamAnt]         = useState("");
   const [bioResAnt, setBioResAnt]           = useState("");
@@ -85,6 +90,7 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
   const [bioFaitLe, setBioFaitLe]           = useState("");
   const [bioNote, setBioNote]               = useState("");
 
+  // Extemporané
   const [extService, setExtService]           = useState("");
   const [extChirurgien, setExtChirurgien]     = useState("");
   const [extPoste, setExtPoste]               = useState("");
@@ -95,6 +101,7 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
   const [extHeure, setExtHeure]               = useState("");
   const [extNote, setExtNote]                 = useState("");
 
+  // Minuterie
   const [timerActive, setTimerActive]   = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -125,27 +132,122 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
 
+  function buildAnapathSummary(): string {
+    const now = new Date().toLocaleString('fr-FR');
+    const label = TABS.find(t => t.key === tab)?.label || tab;
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    html += `<div class="medicament"><span class="nom">Type d'examen :</span> <span class="detail">${label}</span></div>`;
+    if (renseign) html += `<div class="medicament"><span class="nom">Renseignements :</span> <span class="detail">${renseign}</span></div>`;
+
+    if (tab === "fcv") {
+      if (fcvService) html += `<div class="medicament"><span class="nom">Service demandeur :</span> <span class="detail">${fcvService}</span></div>`;
+      html += `<div class="section"><span class="label">Antécédents</span></div>`;
+      if (fcvGPA) html += `<div class="medicament"><span class="nom">G P A :</span> <span class="detail">${fcvGPA}</span></div>`;
+      if (fcvDDR) html += `<div class="medicament"><span class="nom">DDR :</span> <span class="detail">${fcvDDR}</span></div>`;
+      if (fcvMeno) html += `<div class="medicament"><span class="nom">Ménopause :</span> <span class="detail">${fcvMeno}</span></div>`;
+      if (fcvMenarche) html += `<div class="medicament"><span class="nom">Âge ménarche :</span> <span class="detail">${fcvMenarche}</span></div>`;
+      if (fcvRapport) html += `<div class="medicament"><span class="nom">Âge 1er rapport :</span> <span class="detail">${fcvRapport}</span></div>`;
+      if (fcvContra) html += `<div class="medicament"><span class="nom">Contraception :</span> <span class="detail">${fcvContra}</span></div>`;
+      if (fcvTtt) html += `<div class="medicament"><span class="nom">Traitement en cours :</span> <span class="detail">${fcvTtt}</span></div>`;
+      if (fcvPapLieu || fcvPapNb || fcvPapDate || fcvPapRes) {
+        html += `<div class="section"><span class="label">Examens Pap antérieurs</span></div>`;
+        if (fcvPapLieu) html += `<div class="medicament"><span class="nom">Lieu :</span> <span class="detail">${fcvPapLieu}</span></div>`;
+        if (fcvPapNb) html += `<div class="medicament"><span class="nom">Nombre :</span> <span class="detail">${fcvPapNb}</span></div>`;
+        if (fcvPapDate) html += `<div class="medicament"><span class="nom">Date :</span> <span class="detail">${fcvPapDate}</span></div>`;
+        if (fcvPapRes) html += `<div class="medicament"><span class="nom">Résultat :</span> <span class="detail">${fcvPapRes}</span></div>`;
+      }
+      if (fcvAtcd) html += `<div class="medicament"><span class="nom">Autres ATCD :</span> <span class="detail">${fcvAtcd}</span></div>`;
+      if (fcvMeth) html += `<div class="medicament"><span class="nom">Méthode de prélèvement :</span> <span class="detail">${fcvMeth}</span></div>`;
+      if (fcvNote) html += `<div class="medicament"><span class="nom">Note complémentaire :</span> <span class="detail">${fcvNote}</span></div>`;
+    }
+
+    if (tab === "cyto") {
+      if (cytoService) html += `<div class="medicament"><span class="nom">Service demandeur :</span> <span class="detail">${cytoService}</span></div>`;
+      if (cytoSiege) html += `<div class="medicament"><span class="nom">Siège :</span> <span class="detail">${cytoSiege}</span></div>`;
+      if (cytoOrgane) html += `<div class="medicament"><span class="nom">Organe :</span> <span class="detail">${cytoOrgane}</span></div>`;
+      if (cytoFix) {
+        let fixDetail = cytoFix;
+        if (cytoFix === "Autre" && cytoFixAutre) fixDetail += ` (${cytoFixAutre})`;
+        html += `<div class="medicament"><span class="nom">Fixateur :</span> <span class="detail">${fixDetail}</span></div>`;
+      }
+      if (cytoNotes) html += `<div class="medicament"><span class="nom">Note :</span> <span class="detail">${cytoNotes}</span></div>`;
+    }
+
+    if (tab === "liq") {
+      if (liqService) html += `<div class="medicament"><span class="nom">Service demandeur :</span> <span class="detail">${liqService}</span></div>`;
+      if (liqUnite) html += `<div class="medicament"><span class="nom">Unité :</span> <span class="detail">${liqUnite}</span></div>`;
+      if (liqNat) {
+        let nat = liqNat;
+        if (liqNat === "Autre" && liqNatAutre) nat += ` (${liqNatAutre})`;
+        html += `<div class="medicament"><span class="nom">Nature :</span> <span class="detail">${nat}</span></div>`;
+      }
+      if (liqNotes) html += `<div class="medicament"><span class="nom">Note :</span> <span class="detail">${liqNotes}</span></div>`;
+    }
+
+    if (tab === "bio" || tab === "pos" || tab === "poc") {
+      if (bioService) html += `<div class="medicament"><span class="nom">Service demandeur :</span> <span class="detail">${bioService}</span></div>`;
+      html += `<div class="section"><span class="label">Antécédents</span></div>`;
+      if (bioExamAnt) html += `<div class="medicament"><span class="nom">Examen antérieur :</span> <span class="detail">${bioExamAnt}</span></div>`;
+      if (bioResAnt) html += `<div class="medicament"><span class="nom">Résultat antérieur :</span> <span class="detail">${bioResAnt}</span></div>`;
+      if (bioGPA) html += `<div class="medicament"><span class="nom">G P A :</span> <span class="detail">${bioGPA}</span></div>`;
+      if (bioDDR) html += `<div class="medicament"><span class="nom">DDR :</span> <span class="detail">${bioDDR}</span></div>`;
+      if (bioMeno) html += `<div class="medicament"><span class="nom">Ménopause :</span> <span class="detail">${bioMeno}</span></div>`;
+      if (bioAtcd) html += `<div class="medicament"><span class="nom">Autres ATCD :</span> <span class="detail">${bioAtcd}</span></div>`;
+      html += `<div class="section"><span class="label">Prélèvement</span></div>`;
+      if (bioDatePrelev) html += `<div class="medicament"><span class="nom">Date prélèvement :</span> <span class="detail">${bioDatePrelev}</span></div>`;
+      if (bioFixateur) html += `<div class="medicament"><span class="nom">Fixateur :</span> <span class="detail">${bioFixateur}</span></div>`;
+      if (bioOrgane) html += `<div class="medicament"><span class="nom">Organe :</span> <span class="detail">${bioOrgane}</span></div>`;
+      if (bioNature) {
+        let nat = bioNature;
+        if (bioNature === "Autre" && bioNatureAutre) nat += ` (${bioNatureAutre})`;
+        html += `<div class="medicament"><span class="nom">Nature :</span> <span class="detail">${nat}</span></div>`;
+      }
+      if (bioSuspicion) html += `<div class="medicament"><span class="nom">Suspicion :</span> <span class="detail">${bioSuspicion}</span></div>`;
+      if (bioFaitA || bioFaitLe) {
+        html += `<div class="medicament"><span class="nom">Fait à :</span> <span class="detail">${bioFaitA}${bioFaitLe ? ` le ${bioFaitLe}` : ''}</span></div>`;
+      }
+      if (bioNote) html += `<div class="medicament"><span class="nom">Note :</span> <span class="detail">${bioNote}</span></div>`;
+    }
+
+    if (tab === "ext") {
+      if (extService) html += `<div class="medicament"><span class="nom">Service demandeur :</span> <span class="detail">${extService}</span></div>`;
+      if (extChirurgien) html += `<div class="medicament"><span class="nom">Chirurgien :</span> <span class="detail">${extChirurgien}</span></div>`;
+      if (extPoste) html += `<div class="medicament"><span class="nom">Poste bloc :</span> <span class="detail">${extPoste}</span></div>`;
+      if (extIntervention) html += `<div class="medicament"><span class="nom">Intervention :</span> <span class="detail">${extIntervention}</span></div>`;
+      if (extNature) html += `<div class="medicament"><span class="nom">Nature prélèvement :</span> <span class="detail">${extNature}</span></div>`;
+      if (extOrgane) html += `<div class="medicament"><span class="nom">Organe :</span> <span class="detail">${extOrgane}</span></div>`;
+      if (extQuestion) html += `<div class="medicament"><span class="nom">Question clinique :</span> <span class="detail">${extQuestion}</span></div>`;
+      if (extHeure) html += `<div class="medicament"><span class="nom">Heure prélèvement :</span> <span class="detail">${extHeure}</span></div>`;
+      if (extNote) html += `<div class="medicament"><span class="nom">Note :</span> <span class="detail">${extNote}</span></div>`;
+    }
+
+    if (alertes) html += `<div class="notice">⚠️ ${alertes}</div>`;
+    html += `</div>`;
+    return html;
+  }
+
   function buildData() {
-    if (tab === "fcv")  return { renseign: renseign, service: fcvService, gpa: fcvGPA, ddr: fcvDDR, menopause: fcvMeno, menarche: fcvMenarche, rapport: fcvRapport, contraception: fcvContra, traitement: fcvTtt, papLieu: fcvPapLieu, papNb: fcvPapNb, papDate: fcvPapDate, papRes: fcvPapRes, atcd: fcvAtcd, methode: fcvMeth, note: fcvNote };
-    if (tab === "cyto") return { renseign: renseign, service: cytoService, siege: cytoSiege, organe: cytoOrgane, fixateur: cytoFix, fixateurAutre: cytoFixAutre, note: cytoNotes };
-    if (tab === "liq")  return { renseign: renseign, service: liqService, unite: liqUnite, nature: liqNat, natureAutre: liqNatAutre, note: liqNotes };
-    if (tab === "bio" || tab === "pos" || tab === "poc") return { renseign: renseign, service: bioService, examAnt: bioExamAnt, resAnt: bioResAnt, gpa: bioGPA, ddr: bioDDR, menopause: bioMeno, atcd: bioAtcd, datePrelev: bioDatePrelev, fixateur: bioFixateur, organe: bioOrgane, nature: bioNature, natureAutre: bioNatureAutre, suspicion: bioSuspicion, faitA: bioFaitA, faitLe: bioFaitLe, note: bioNote };
-    if (tab === "ext")  return { renseign: renseign, service: extService, chirurgien: extChirurgien, poste: extPoste, intervention: extIntervention, nature: extNature, organe: extOrgane, question: extQuestion, heure: extHeure, note: extNote };
+    if (tab === "fcv")  return { renseign, service: fcvService, gpa: fcvGPA, ddr: fcvDDR, menopause: fcvMeno, menarche: fcvMenarche, rapport: fcvRapport, contraception: fcvContra, traitement: fcvTtt, papLieu: fcvPapLieu, papNb: fcvPapNb, papDate: fcvPapDate, papRes: fcvPapRes, atcd: fcvAtcd, methode: fcvMeth, note: fcvNote };
+    if (tab === "cyto") return { renseign, service: cytoService, siege: cytoSiege, organe: cytoOrgane, fixateur: cytoFix, fixateurAutre: cytoFixAutre, note: cytoNotes };
+    if (tab === "liq")  return { renseign, service: liqService, unite: liqUnite, nature: liqNat, natureAutre: liqNatAutre, note: liqNotes };
+    if (tab === "bio" || tab === "pos" || tab === "poc") return { renseign, service: bioService, examAnt: bioExamAnt, resAnt: bioResAnt, gpa: bioGPA, ddr: bioDDR, menopause: bioMeno, atcd: bioAtcd, datePrelev: bioDatePrelev, fixateur: bioFixateur, organe: bioOrgane, nature: bioNature, natureAutre: bioNatureAutre, suspicion: bioSuspicion, faitA: bioFaitA, faitLe: bioFaitLe, note: bioNote };
+    if (tab === "ext")  return { renseign, service: extService, chirurgien: extChirurgien, poste: extPoste, intervention: extIntervention, nature: extNature, organe: extOrgane, question: extQuestion, heure: extHeure, note: extNote };
   }
 
   async function handleSubmit() {
     setShowModal(false); setLoading(true); setApiError("");
     try {
       await creerPrescriptionAnapath({
-        patientId: patient.id, urgence, alertes, typeExamen: tab, data: buildData() });
+        patientId: patient.id,
+        urgence,
+        alertes,
+        typeExamen: tab,
+        data: buildData(),
+      });
       if (tab === "ext") setTimerActive(true);
+      openSummaryWindow('Anatomie Pathologique', buildAnapathSummary());
       showToast("Demande Anapath transmise");
       setRenseign(""); setAlertes(""); setUrgence("n");
-      setFcvNote(""); setFcvGPA(""); setFcvDDR(""); setFcvMeno(""); setFcvMenarche(""); setFcvRapport(""); setFcvContra(""); setFcvTtt(""); setFcvPapLieu(""); setFcvPapNb(""); setFcvPapDate(""); setFcvPapRes(""); setFcvAtcd(""); setFcvMeth(""); setFcvService("");
-      setCytoSiege(""); setCytoOrgane(""); setCytoFix(""); setCytoFixAutre(""); setCytoNotes(""); setCytoService("");
-      setLiqNat(""); setLiqNatAutre(""); setLiqNotes(""); setLiqService(""); setLiqUnite("");
-      setBioOrgane(""); setBioNature(""); setBioNatureAutre(""); setBioSuspicion(""); setBioNote(""); setBioService(""); setBioExamAnt(""); setBioResAnt(""); setBioGPA(""); setBioDDR(""); setBioMeno(""); setBioAtcd(""); setBioDatePrelev(""); setBioFixateur(""); setBioFaitA(""); setBioFaitLe("");
-      setExtChirurgien(""); setExtPoste(""); setExtIntervention(""); setExtNature(""); setExtOrgane(""); setExtQuestion(""); setExtHeure(""); setExtNote(""); setExtService("");
     } catch { setApiError("Erreur lors de l'envoi. Vérifiez la connexion."); }
     finally { setLoading(false); }
   }
@@ -158,7 +260,6 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
-
       {/* COLONNE GAUCHE */}
       <div>
         {tab !== "ext" && (
@@ -185,20 +286,43 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
             <div className="g2 mb12">
               <div><label className="lbl">G P A</label><input type="text" value={fcvGPA} onChange={e => setFcvGPA(e.target.value)} placeholder="Ex : G3 P2 A1" /></div>
               <div><label className="lbl">DDR</label><input type="date" value={fcvDDR} onChange={e => setFcvDDR(e.target.value)} /></div>
-              <div><label className="lbl">Ménopause</label><div style={{ display: "flex", gap: 8, marginTop: 4 }}>{["OUI","NON"].map(v => <label key={v} className="rc" style={{flex:1}}><input type="radio" name="fcv-meno" checked={fcvMeno===v} onChange={() => setFcvMeno(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
+              <div>
+                <label className="lbl">Ménopause</label>
+                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                  {["OUI", "NON"].map(v => (
+                    <label key={v} className="rc" style={{ flex: 1 }}>
+                      <input type="radio" name="fcv-meno" checked={fcvMeno === v} onChange={() => setFcvMeno(v)} style={{ accentColor: "var(--navy)" }} />
+                      <span>{v}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
               <div><label className="lbl">Âge de la ménarche</label><input type="text" value={fcvMenarche} onChange={e => setFcvMenarche(e.target.value)} placeholder="Âge (ans)" /></div>
               <div><label className="lbl">Âge du 1er rapport sexuel</label><input type="text" value={fcvRapport} onChange={e => setFcvRapport(e.target.value)} placeholder="Âge (ans)" /></div>
               <div><label className="lbl">Contraception</label><input type="text" value={fcvContra} onChange={e => setFcvContra(e.target.value)} placeholder="Méthode, durée..." /></div>
               <div><label className="lbl">Traitement en cours</label><input type="text" value={fcvTtt} onChange={e => setFcvTtt(e.target.value)} placeholder="Médicaments, posologies..." /></div>
             </div>
-            <div className="mb12"><label className="lbl">Examens Pap test antérieurs</label><div className="g2 mb8">
-              <input type="text" value={fcvPapLieu} onChange={e => setFcvPapLieu(e.target.value)} placeholder="Lieu" />
-              <input type="text" value={fcvPapNb} onChange={e => setFcvPapNb(e.target.value)} placeholder="Nombre de fois" />
-              <input type="date" value={fcvPapDate} onChange={e => setFcvPapDate(e.target.value)} />
-              <input type="text" value={fcvPapRes} onChange={e => setFcvPapRes(e.target.value)} placeholder="Résultat" />
-            </div></div>
+            <div className="mb12">
+              <label className="lbl">Examens Pap test antérieurs</label>
+              <div className="g2 mb8">
+                <input type="text" value={fcvPapLieu} onChange={e => setFcvPapLieu(e.target.value)} placeholder="Lieu" />
+                <input type="text" value={fcvPapNb} onChange={e => setFcvPapNb(e.target.value)} placeholder="Nombre de fois" />
+                <input type="date" value={fcvPapDate} onChange={e => setFcvPapDate(e.target.value)} />
+                <input type="text" value={fcvPapRes} onChange={e => setFcvPapRes(e.target.value)} placeholder="Résultat" />
+              </div>
+            </div>
             <div className="mb12"><label className="lbl">Autres antécédents personnels et familiaux</label><textarea rows={2} value={fcvAtcd} onChange={e => setFcvAtcd(e.target.value)} placeholder="Précisez..." /></div>
-            <div className="mb12"><label className="lbl">Méthode de prélèvement</label><div className="g2">{["Spatule + brosse","Milieu liquide (ThinPrep)"].map(v => <label key={v} className="rc"><input type="radio" name="fcv-meth" checked={fcvMeth===v} onChange={() => setFcvMeth(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
+            <div className="mb12">
+              <label className="lbl">Méthode de prélèvement</label>
+              <div className="g2">
+                {["Spatule + brosse", "Milieu liquide (ThinPrep)"].map(v => (
+                  <label key={v} className="rc">
+                    <input type="radio" name="fcv-meth" checked={fcvMeth === v} onChange={() => setFcvMeth(v)} style={{ accentColor: "var(--navy)" }} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <label className="lbl">Note complémentaire <span className="req">*</span></label>
             <textarea rows={3} value={fcvNote} onChange={e => setFcvNote(e.target.value)} placeholder="Signes cliniques, motif de la demande..." />
           </div>
@@ -209,11 +333,23 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
             <div className="info-note mb12"><span className="ms">info</span><span>Cytoponction — Informations personnelles rattachées via l'ID patient.</span></div>
             <div className="mb12"><label className="lbl">Unité / Service demandeur</label><input type="text" value={cytoService} onChange={e => setCytoService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
             <div className="g2 mb12">
-              <div><label className="lbl">Siège de la ponction <span className="req">*</span></label><input type="text" value={cytoSiege} onChange={e => setCytoSiege(e.target.value)} placeholder="Ex : sein gauche..." /></div>
-              <div><label className="lbl">Organe <span className="req">*</span></label><input type="text" value={cytoOrgane} onChange={e => setCytoOrgane(e.target.value)} placeholder="Ex : thyroïde, ganglion..." /></div>
+              <div><label className="lbl">Siège de la ponction <span className="req">*</span></label><input type="text" value={cytoSiege} onChange={e => setCytoSiege(e.target.value)} placeholder="Ex : sein gauche, creux axillaire..." /></div>
+              <div><label className="lbl">Organe <span className="req">*</span></label><input type="text" value={cytoOrgane} onChange={e => setCytoOrgane(e.target.value)} placeholder="Ex : thyroïde, ganglion, kyste..." /></div>
             </div>
-            <div className="mb12"><label className="lbl">Fixateur</label><div className="g2">{["Cytofixe","Autre"].map(v => <label key={v} className="rc"><input type="radio" name="cyto-fix" checked={cytoFix===v} onChange={() => setCytoFix(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
-            {cytoFix === "Autre" && <div className="mb12"><label className="lbl">Préciser le fixateur</label><input type="text" value={cytoFixAutre} onChange={e => setCytoFixAutre(e.target.value)} placeholder="Nom du fixateur utilisé..." /></div>}
+            <div className="mb12">
+              <label className="lbl">Fixateur</label>
+              <div className="g2">
+                {["Cytofixe", "Autre"].map(v => (
+                  <label key={v} className="rc">
+                    <input type="radio" name="cyto-fix" checked={cytoFix === v} onChange={() => setCytoFix(v)} style={{ accentColor: "var(--navy)" }} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {cytoFix === "Autre" && (
+              <div className="mb12"><label className="lbl">Préciser le fixateur</label><input type="text" value={cytoFixAutre} onChange={e => setCytoFixAutre(e.target.value)} placeholder="Nom du fixateur utilisé..." /></div>
+            )}
             <label className="lbl">Note complémentaire</label>
             <textarea rows={2} value={cytoNotes} onChange={e => setCytoNotes(e.target.value)} placeholder="Informations supplémentaires pour le pathologiste..." />
           </div>
@@ -226,10 +362,22 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
               <div><label className="lbl">Unité / Service demandeur</label><input type="text" value={liqService} onChange={e => setLiqService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
               <div><label className="lbl">Unité de soins (si hospitalisé)</label><input type="text" value={liqUnite} onChange={e => setLiqUnite(e.target.value)} placeholder="Service / Unité" /></div>
             </div>
-            <div className="mb12"><label className="lbl">Nature du liquide <span className="req">*</span></label><div className="g2">{["Ascite","Pleural","Urinaire","Crachat","LCR","Autre"].map(v => <label key={v} className="rc"><input type="radio" name="liq-nat" checked={liqNat===v} onChange={() => setLiqNat(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
-            {liqNat === "Autre" && <div className="mb12"><label className="lbl">Préciser <span className="req">*</span></label><input type="text" value={liqNatAutre} onChange={e => setLiqNatAutre(e.target.value)} placeholder="Nature du liquide..." /></div>}
+            <div className="mb12">
+              <label className="lbl">Nature du liquide <span className="req">*</span></label>
+              <div className="g2">
+                {["Ascite", "Pleural", "Urinaire", "Crachat", "LCR", "Autre"].map(v => (
+                  <label key={v} className="rc">
+                    <input type="radio" name="liq-nat" checked={liqNat === v} onChange={() => setLiqNat(v)} style={{ accentColor: "var(--navy)" }} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {liqNat === "Autre" && (
+              <div className="mb12"><label className="lbl">Préciser la nature du liquide <span className="req">*</span></label><input type="text" value={liqNatAutre} onChange={e => setLiqNatAutre(e.target.value)} placeholder="Nature du liquide..." /></div>
+            )}
             <label className="lbl">Note complémentaire <span className="req">*</span></label>
-            <textarea rows={3} value={liqNotes} onChange={e => setLiqNotes(e.target.value)} placeholder="Symptômes, volume prélevé, aspect macroscopique..." />
+            <textarea rows={3} value={liqNotes} onChange={e => setLiqNotes(e.target.value)} placeholder="Symptômes, antécédents, résultats d'imagerie, volume prélevé, aspect macroscopique..." />
           </div>
         )}
 
@@ -244,17 +392,45 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
               <div><label className="lbl">G P A (si applicable)</label><input type="text" value={bioGPA} onChange={e => setBioGPA(e.target.value)} placeholder="Ex : G3 P2 A1" /></div>
               <div><label className="lbl">DDR (si applicable)</label><input type="date" value={bioDDR} onChange={e => setBioDDR(e.target.value)} /></div>
             </div>
-            <div className="mb12"><label className="lbl">Ménopause</label><div className="g2">{["OUI","NON"].map(v => <label key={v} className="rc"><input type="radio" name="bio-meno" checked={bioMeno===v} onChange={() => setBioMeno(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
+            <div className="mb12">
+              <label className="lbl">Ménopause</label>
+              <div className="g2">
+                {["OUI", "NON"].map(v => (
+                  <label key={v} className="rc">
+                    <input type="radio" name="bio-meno" checked={bioMeno === v} onChange={() => setBioMeno(v)} style={{ accentColor: "var(--navy)" }} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className="mb12"><label className="lbl">Autres antécédents personnels / familiaux</label><textarea rows={2} value={bioAtcd} onChange={e => setBioAtcd(e.target.value)} placeholder="Précisez..." /></div>
             <div style={{ height: 1, background: "var(--bdr)", margin: "12px 0" }} />
             <div className="sh mb12">Prélèvement</div>
             <div className="g2 mb12">
               <div><label className="lbl">Date du prélèvement</label><input type="date" value={bioDatePrelev} onChange={e => setBioDatePrelev(e.target.value)} /></div>
-              <div><label className="lbl">Fixateur</label><select value={bioFixateur} onChange={e => setBioFixateur(e.target.value)}><option value="">— Sélectionner —</option>{["Formol 10%","Liquide de Bouin","Alcool","Autre"].map(o => <option key={o}>{o}</option>)}</select></div>
+              <div>
+                <label className="lbl">Fixateur</label>
+                <select value={bioFixateur} onChange={e => setBioFixateur(e.target.value)}>
+                  <option value="">— Sélectionner —</option>
+                  {["Formol 10%", "Liquide de Bouin", "Alcool", "Autre"].map(o => <option key={o}>{o}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="mb12"><label className="lbl">Organe(s) / Site anatomique <span className="req">*</span></label><input type="text" value={bioOrgane} onChange={e => setBioOrgane(e.target.value)} placeholder="Ex : colon sigmoïde, sein droit..." /></div>
-            <div className="mb12"><label className="lbl">Nature du prélèvement <span className="req">*</span></label><div className="g2">{["Biopsie","Exérèse","Curage ganglionnaire","Autre"].map(v => <label key={v} className="rc"><input type="radio" name="bio-nat" checked={bioNature===v} onChange={() => setBioNature(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
-            {bioNature === "Autre" && <div className="mb12"><label className="lbl">Préciser <span className="req">*</span></label><input type="text" value={bioNatureAutre} onChange={e => setBioNatureAutre(e.target.value)} placeholder="Préciser..." /></div>}
+            <div className="mb12"><label className="lbl">Organe(s) / Site anatomique <span className="req">*</span></label><input type="text" value={bioOrgane} onChange={e => setBioOrgane(e.target.value)} placeholder="Ex : colon sigmoïde, sein droit, col utérin..." /></div>
+            <div className="mb12">
+              <label className="lbl">Nature du prélèvement <span className="req">*</span></label>
+              <div className="g2">
+                {["Biopsie", "Exérèse", "Curage ganglionnaire", "Autre"].map(v => (
+                  <label key={v} className="rc">
+                    <input type="radio" name="bio-nat" checked={bioNature === v} onChange={() => setBioNature(v)} style={{ accentColor: "var(--navy)" }} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {bioNature === "Autre" && (
+              <div className="mb12"><label className="lbl">Préciser la nature <span className="req">*</span></label><input type="text" value={bioNatureAutre} onChange={e => setBioNatureAutre(e.target.value)} placeholder="Préciser..." /></div>
+            )}
             <div className="mb12"><label className="lbl">Suspicion diagnostique</label><textarea rows={2} value={bioSuspicion} onChange={e => setBioSuspicion(e.target.value)} placeholder="Hypothèse(s) diagnostique(s)..." /></div>
             <div className="g2 mb12">
               <div><label className="lbl">Fait à</label><input type="text" value={bioFaitA} onChange={e => setBioFaitA(e.target.value)} placeholder="Ville / Établissement" /></div>
@@ -280,15 +456,33 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
             <div className="mb12"><label className="lbl">Unité / Service demandeur</label><input type="text" value={extService} onChange={e => setExtService(e.target.value)} placeholder="Service clinique prescripteur" /></div>
             <div className="g2 mb12">
               <div><label className="lbl">Chirurgien en salle <span className="req">*</span></label><input type="text" value={extChirurgien} onChange={e => setExtChirurgien(e.target.value)} placeholder="Dr. _______________" /></div>
-              <div><label className="lbl">Poste téléphonique du bloc <span className="req">*</span></label><input type="text" value={extPoste} onChange={e => setExtPoste(e.target.value)} placeholder="Ex : 2741" /></div>
+              <div><label className="lbl">Poste téléphonique du bloc <span className="req">*</span></label><input type="text" value={extPoste} onChange={e => setExtPoste(e.target.value)} placeholder="Ex : 2741 — résultat communiqué par téléphone" /></div>
             </div>
-            <div className="mb12"><label className="lbl">Type d'intervention chirurgicale en cours <span className="req">*</span></label><input type="text" value={extIntervention} onChange={e => setExtIntervention(e.target.value)} placeholder="Ex : Thyroïdectomie, résection tumorale..." /></div>
-            <div className="mb12"><label className="lbl">Nature du prélèvement <span className="req">*</span></label><div className="g2">{["Tissu frais (histologique)","Cytologique (cytoponction, apposition, liquide)"].map(v => <label key={v} className="rc"><input type="radio" name="ext-nat" checked={extNature===v} onChange={() => setExtNature(v)} style={{accentColor:"var(--navy)"}}/><span>{v}</span></label>)}</div></div>
-            <div className="mb12"><label className="lbl">Organe / Site anatomique prélevé <span className="req">*</span></label><input type="text" value={extOrgane} onChange={e => setExtOrgane(e.target.value)} placeholder="Ex : sein gauche, thyroïde..." /></div>
-            <div className="mb12"><label className="lbl">Question clinique posée au pathologiste <span className="req">*</span></label><textarea rows={3} value={extQuestion} onChange={e => setExtQuestion(e.target.value)} placeholder="Ex : Marge de résection saine ?" /><p className="hint">Le pathologiste limite sa réponse à ce qui guide le chirurgien en cours d'intervention.</p></div>
+            <div className="mb12"><label className="lbl">Type d'intervention chirurgicale en cours <span className="req">*</span></label><input type="text" value={extIntervention} onChange={e => setExtIntervention(e.target.value)} placeholder="Ex : Thyroïdectomie, résection tumorale côlon, mastectomie..." /></div>
+            <div className="mb12">
+              <label className="lbl">Nature du prélèvement <span className="req">*</span></label>
+              <div className="g2">
+                {["Tissu frais (histologique)", "Cytologique (cytoponction, apposition, liquide)"].map(v => (
+                  <label key={v} className="rc">
+                    <input type="radio" name="ext-nat" checked={extNature === v} onChange={() => setExtNature(v)} style={{ accentColor: "var(--navy)" }} />
+                    <span>{v}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="mb12"><label className="lbl">Organe / Site anatomique prélevé <span className="req">*</span></label><input type="text" value={extOrgane} onChange={e => setExtOrgane(e.target.value)} placeholder="Ex : sein gauche, thyroïde, ganglion sentinelle, marge de résection colique..." /></div>
+            <div className="mb12"><label className="lbl">Question clinique posée au pathologiste <span className="req">*</span></label><textarea rows={3} value={extQuestion} onChange={e => setExtQuestion(e.target.value)} placeholder="Ex : Marge de résection saine ? Lésion bénigne ou maligne ? Ganglion envahi ? Continuer ou arrêter la résection ?" /><p className="hint">Le pathologiste limite sa réponse à ce qui guide le chirurgien en cours d'intervention (bénin/malin, marge saine/envahie).</p></div>
             <div className="g2 mb12">
-              <div><label className="lbl">Heure de prélèvement <span className="req">*</span></label><input type="text" value={extHeure} onChange={e => setExtHeure(e.target.value)} placeholder="HH:MM" onFocus={e => { if (!e.target.value) { const n = new Date(); setExtHeure(`${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}`); }}} /></div>
-              <div><label className="lbl">Délai maximal attendu</label><input type="text" readOnly value="30 minutes" style={{ background: "var(--red-lt)", color: "var(--red)", fontWeight: 700, borderColor: "var(--red-bdr)" }} /></div>
+              <div>
+                <label className="lbl">Heure de prélèvement <span className="req">*</span></label>
+                <input type="text" value={extHeure} onChange={e => setExtHeure(e.target.value)} placeholder="HH:MM"
+                  onFocus={e => { if (!e.target.value) { const n = new Date(); setExtHeure(`${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}`); }}} />
+              </div>
+              <div>
+                <label className="lbl">Délai maximal attendu</label>
+                <input type="text" readOnly value="30 minutes"
+                  style={{ background: "var(--red-lt)", color: "var(--red)", fontWeight: 700, borderColor: "var(--red-bdr)" }} />
+              </div>
             </div>
             <label className="lbl">Note complémentaire</label>
             <textarea rows={2} value={extNote} onChange={e => setExtNote(e.target.value)} placeholder="Informations supplémentaires pour le pathologiste..." />

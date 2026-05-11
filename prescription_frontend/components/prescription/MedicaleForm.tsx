@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionMedicale, getPrescriptionsPatient, notifierInfirmierMedicale, updateStatutPrescription } from '@/lib/api';
 
 interface Medicament {
@@ -29,8 +30,8 @@ interface StockItem {
   code: string;
   nom: string;
   dose: string;
-  conditionnement: string; // ex: "1 plaquette (16 comprimés)"
-  stockDisponible: number; // nombre d'unités de conditionnement disponibles
+  conditionnement: string;
+  stockDisponible: number;
 }
 
 const STOCK_MEDICAMENTS: StockItem[] = [
@@ -71,6 +72,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
   const [remarques, setRemarques] = useState('');
   const [notifier, setNotifier] = useState(false);
   const [remarqueGenerale, setRemarqueGenerale] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [suggestions, setSuggestions] = useState<StockItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -134,7 +136,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
 
   const handleSearchChange = (value: string) => {
     setNom(value);
-    if (value.trim().length > 1) {
+    if (value.trim().length > 0) {
       const q = value.toLowerCase();
       const filtered = STOCK_MEDICAMENTS.filter(med =>
         `${med.nom} ${med.dose} ${med.conditionnement}`.toLowerCase().includes(q)
@@ -153,8 +155,18 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
     setShowSuggestions(false);
   };
 
+  function validateAddForm(): boolean {
+    const newErrors: Record<string, string> = {};
+    if (!nom.trim()) newErrors.nom = 'Le médicament est requis';
+    if (!dose.trim()) newErrors.dose = 'La dose est requise';
+    if (!frequence) newErrors.frequence = 'La fréquence est requise';
+    if (!duree.trim() || isNaN(Number(duree))) newErrors.duree = 'Veuillez entrer un nombre valide';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   const ajouterMedicament = () => {
-    if (!isFormValid) return;
+    if (!validateAddForm()) return;
     const dureeComplete = `${duree} ${dureeUnite}`;
     setMedicaments([...medicaments, {
       id: Date.now().toString(),
@@ -163,7 +175,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
     }]);
     setNom(''); setDose(''); setQuantite(1); setVoie(''); setFrequence('');
     setDuree(''); setDureeUnite('jours'); setDateDebut(''); setHeureDebut('');
-    setInstructions(''); setRemarques('');
+    setInstructions(''); setRemarques(''); setErrors({});
     setShowSuggestions(false);
   };
 
@@ -176,8 +188,25 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
     } catch {}
   }
 
+  function buildMedicaleSummary(meds: Medicament[], remarques: string, notifier: boolean): string {
+    const now = new Date().toLocaleString('fr-FR');
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    meds.forEach(m => {
+      html += `
+        <div class="medicament">
+          <span class="nom">${m.nom} ${m.dose}</span>
+          <span class="detail">Quantité : ${m.quantite} · ${m.frequence}${m.voie ? ` · ${m.voie.toLowerCase()}` : ''} · Pendant ${m.duree}.</span>
+        </div>`;
+    });
+    if (remarques) html += `<div class="notice">⚠️ ${remarques}</div>`;
+    if (notifier) html += `<div class="notice"><span class="badge badge-success">✅ Infirmier notifié</span></div>`;
+    html += `</div>`;
+    return html;
+  }
+
   async function handleSubmitPrescription() {
     if (!canValidate) return;
+    setErrors({});
     setLoading(true);
     setApiError('');
     try {
@@ -194,9 +223,9 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
         })),
       });
       if (notifier && result?.id) {
-        console.log('Envoi notification pour id', result.id);
         notifierInfirmierMedicale(result.id).catch(e => console.error('Erreur notification', e));
       }
+      openSummaryWindow('Prescription médicamenteuse', buildMedicaleSummary(medicaments, remarqueGenerale, notifier));
       showToast('Prescription médicamenteuse validée');
       setMedicaments([]);
       setRemarqueGenerale('');
@@ -219,6 +248,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
 
   async function handleCreateOrdonnance() {
     if (!canValidate) return;
+    setErrors({});
     setLoading(true);
     setApiError('');
     try {
@@ -235,15 +265,14 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
         })),
       });
       if (notifier && result?.id) {
-        console.log('Envoi notification pour id', result.id);
         notifierInfirmierMedicale(result.id).catch(e => console.error('Erreur notification', e));
       }
+      openSummaryWindow('Ordonnance transmise à la pharmacie', buildMedicaleSummary(medicaments, remarqueGenerale, notifier));
       const medsPourOrdonnance = medicaments
         .filter(m => (ordonnanceItems.get(m.id) ?? 0) > 0)
         .map(m => ({
           nom: m.nom, dose: m.dose, quantite: ordonnanceItems.get(m.id) ?? m.quantite,
         }));
-      console.log('Ordonnance à créer:', medsPourOrdonnance);
       showToast('Ordonnance créée avec les médicaments sélectionnés');
       setMedicaments([]);
       setRemarqueGenerale('');
@@ -280,11 +309,14 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
           <div className="mb12" ref={wrapperRef} style={{ position: 'relative' }}>
             <label className="lbl">Médicament <span className="req">*</span></label>
             <div className="iw">
-              <input type="text" value={nom} onChange={e => handleSearchChange(e.target.value)}
-                onFocus={() => { if (nom.trim().length > 1) setShowSuggestions(true); }}
-                placeholder="Rechercher dans le stock pharmacie..." />
+              <input type="text" value={nom}
+                onChange={e => { handleSearchChange(e.target.value); if (errors.nom) setErrors({...errors, nom: ''}); }}
+                onFocus={() => { if (nom.trim().length > 0) setShowSuggestions(true); }}
+                placeholder="Rechercher dans le stock pharmacie..."
+                style={errors.nom ? { borderColor: 'var(--red)' } : {}} />
               <span className="ico"><span className="ms">search</span></span>
             </div>
+            {errors.nom && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.nom}</div>}
             {showSuggestions && suggestions.length > 0 && (
               <ul style={{ position: 'absolute', left: 0, right: 0, top: '100%', marginTop: 2, background: 'var(--card)', border: '1px solid var(--bdr)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 30, maxHeight: 200, overflowY: 'auto', listStyle: 'none', padding: 0, margin: 0 }}>
                 {suggestions.map((med) => (
@@ -305,23 +337,31 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
             )}
             <p className="hint">Le médicament est recherché dans le stock en détail de la pharmacie.</p>
           </div>
+          {/* Le reste du formulaire reste inchangé */}
           <div className="g2 mb12">
-            <div><label className="lbl">Dose <span className="req">*</span></label><input type="text" value={dose} onChange={e => setDose(e.target.value)} placeholder="Ex : 1g, 500mg"/></div>
+            <div>
+              <label className="lbl">Dose <span className="req">*</span></label>
+              <input type="text" value={dose} onChange={e => { setDose(e.target.value); if (errors.dose) setErrors({...errors, dose: ''}); }} placeholder="Ex : 1g, 500mg" style={errors.dose ? { borderColor: 'var(--red)' } : {}} />
+              {errors.dose && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.dose}</div>}
+            </div>
             <div><label className="lbl">Quantité</label><input type="number" min={1} value={quantite} onChange={e => setQuantite(Math.max(1, parseInt(e.target.value) || 1))} /></div>
           </div>
           <div className="mb12"><label className="lbl">Voie d'administration</label><select value={voie} onChange={e => setVoie(e.target.value)}><option value="">Sélectionner</option><option>Orale (per os)</option><option>Intraveineuse (IV)</option><option>Intramusculaire (IM)</option><option>Sous-cutanée (SC)</option><option>Rectale</option><option>Topique / locale</option><option>Inhalation</option><option>Sublinguale</option></select></div>
           <div className="g2 mb12">
-            <div><label className="lbl">Fréquence <span className="req">*</span></label><select value={frequence} onChange={e => setFrequence(e.target.value)}><option value="">Sélectionner</option><option>1× par jour</option><option>2× par jour (toutes les 12h)</option><option>3× par jour (toutes les 8h)</option><option>4× par jour (toutes les 6h)</option><option>Toutes les 4h</option><option>En continu (perfusion)</option><option>Si besoin (SOS)</option><option>Dose unique</option></select></div>
+            <div>
+              <label className="lbl">Fréquence <span className="req">*</span></label>
+              <select value={frequence} onChange={e => { setFrequence(e.target.value); if (errors.frequence) setErrors({...errors, frequence: ''}); }} style={errors.frequence ? { borderColor: 'var(--red)' } : {}}>
+                <option value="">Sélectionner</option><option>1× par jour</option><option>2× par jour (toutes les 12h)</option><option>3× par jour (toutes les 8h)</option><option>4× par jour (toutes les 6h)</option><option>Toutes les 4h</option><option>En continu (perfusion)</option><option>Si besoin (SOS)</option><option>Dose unique</option>
+              </select>
+              {errors.frequence && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequence}</div>}
+            </div>
             <div>
               <label className="lbl">Durée <span className="req">*</span></label>
               <div className="g2">
-                <input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 7" />
-                <select value={dureeUnite} onChange={e => setDureeUnite(e.target.value)}>
-                  <option value="heures">heures</option>
-                  <option value="jours">jours</option>
-                  <option value="mois">mois</option>
-                </select>
+                <input type="text" value={duree} onChange={e => { setDuree(e.target.value); if (errors.duree) setErrors({...errors, duree: ''}); }} placeholder="Ex : 7" style={errors.duree ? { borderColor: 'var(--red)' } : {}} />
+                <select value={dureeUnite} onChange={e => setDureeUnite(e.target.value)}><option value="heures">heures</option><option value="jours">jours</option><option value="mois">mois</option></select>
               </div>
+              {errors.duree && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.duree}</div>}
             </div>
           </div>
           <div className="g2 mb12">

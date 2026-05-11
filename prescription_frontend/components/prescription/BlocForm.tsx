@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionBloc } from "@/lib/api";
 
 type Urgence = "n" | "u" | "tu";
@@ -29,6 +30,23 @@ export default function BlocForm({ patient, prescripteur }: Props) {
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
 
+  function buildBlocSummary(): string {
+    const now = new Date().toLocaleString('fr-FR');
+    const urgLabel = { n: 'Normal (programmé)', u: 'Urgent', tu: 'STAT' }[urgence];
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    html += `<div class="medicament"><span class="nom">Urgence :</span> <span class="detail">${urgLabel}</span></div>`;
+    html += `<div class="medicament"><span class="nom">Renseignements :</span> <span class="detail">${renseignements}</span></div>`;
+    html += `<div class="medicament"><span class="nom">Intervention :</span> <span class="detail">${libelle}</span></div>`;
+    if (dateIntervention) html += `<div class="medicament"><span class="nom">Date prévue :</span> <span class="detail">${dateIntervention}</span></div>`;
+    if (risqueHemo) html += `<div class="medicament"><span class="nom">Risque hémorragique :</span> <span class="detail">${risqueHemo}</span></div>`;
+    if (typeChir) html += `<div class="medicament"><span class="nom">Type de chirurgie :</span> <span class="detail">${typeChir}</span></div>`;
+    if (chirurgien) html += `<div class="medicament"><span class="nom">Chirurgien :</span> <span class="detail">${chirurgien}</span></div>`;
+    if (alertes) html += `<div class="notice">⚠️ ${alertes}</div>`;
+    if (consignes) html += `<div class="notice">📌 ${consignes}</div>`;
+    html += `</div>`;
+    return html;
+  }
+
   async function handleSubmit() {
     setShowModal(false);
     setLoading(true);
@@ -43,6 +61,7 @@ export default function BlocForm({ patient, prescripteur }: Props) {
         chirurgien,
         consignes,
       });
+      openSummaryWindow('Bloc opératoire', buildBlocSummary());
       showToast("Prescription bloc envoyée — Demande de CPA transmise");
       // reset
       setUrgence("n"); setAlertes(""); setRenseignements(""); setLibelle("");

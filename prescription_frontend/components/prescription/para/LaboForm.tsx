@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { openSummaryWindow } from '@/lib/printPrescription';
 import { creerPrescriptionLabo } from '@/lib/api';
 
 const CATEGORIES = [
@@ -48,6 +49,17 @@ export default function LaboForm({ patient, prescripteur }: Props) {
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
   const isFormValid = selected.length > 0 && renseignements.trim();
 
+  function buildLaboSummary(): string {
+    const now = new Date().toLocaleString('fr-FR');
+    let html = `<div class="card"><div class="patient">Date : ${now}</div>`;
+    html += `<div class="medicament"><span class="nom">Renseignements :</span> <span class="detail">${renseignements}</span></div>`;
+    html += `<div class="medicament"><span class="nom">Analyses :</span> <span class="detail">${selected.join(', ')}</span></div>`;
+    if (notes) html += `<div class="notice">📌 ${notes}</div>`;
+    if (alertes) html += `<div class="notice">⚠️ ${alertes}</div>`;
+    html += `</div>`;
+    return html;
+  }
+
   async function handleSubmit() {
     setShowModal(false);
     setLoading(true);
@@ -61,6 +73,7 @@ export default function LaboForm({ patient, prescripteur }: Props) {
         analyses: selected,
         notes,
       });
+      openSummaryWindow('Prescription laboratoire', buildLaboSummary());
       showToast('Prescription transmise au laboratoire');
       setSelected([]);
       setRenseignements('');
@@ -111,7 +124,6 @@ export default function LaboForm({ patient, prescripteur }: Props) {
             <textarea style={{ background: 'var(--red-lt)', border: '1.5px dashed var(--red-bdr)', borderRadius: 10, padding: '8px 12px', fontSize: 14, width: '100%', resize: 'none' }} rows={1} placeholder="Allergies, contre-indications..." value={alertes} onChange={e => setAlertes(e.target.value)} />
           </div>
 
-          {/* Récapitulatif sélection */}
           {selected.length > 0 && (
             <div style={{ background: 'var(--navy-lt)', border: '1.5px solid var(--navy-mid)', borderRadius: 12, padding: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -122,11 +134,7 @@ export default function LaboForm({ patient, prescripteur }: Props) {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {selected.map(a => (
-                  <span key={a} style={{
-                    background: '#fff', border: '1px solid var(--navy-mid)', borderRadius: 20,
-                    padding: '3px 10px', fontSize: 12, fontWeight: 600, color: 'var(--navy)',
-                    display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer'
-                  }} onClick={() => toggle(a)}>
+                  <span key={a} style={{ background: '#fff', border: '1px solid var(--navy-mid)', borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600, color: 'var(--navy)', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }} onClick={() => toggle(a)}>
                     {a}
                     <span className="ms" style={{ fontSize: 13 }}>close</span>
                   </span>
@@ -135,7 +143,6 @@ export default function LaboForm({ patient, prescripteur }: Props) {
             </div>
           )}
 
-          {/* Notes complémentaires (déplacé à droite) */}
           <div className="card" style={{ padding: 12 }}>
             <label className="lbl">Notes complémentaires</label>
             <textarea rows={3} placeholder="Ex : patient à jeun, dernier repas à 8h..." value={notes} onChange={e => setNotes(e.target.value)} />
