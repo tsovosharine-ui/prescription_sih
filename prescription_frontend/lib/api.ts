@@ -24,13 +24,12 @@ export function removeToken() {
   localStorage.removeItem('token');
 }
 
-// Nouvelle fonction : récupérer le profil du prescripteur connecté
 export async function getCurrentUser() {
   const res = await fetch(`${API_URL}/auth/profile`, {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error('Impossible de récupérer le profil');
-  return res.json(); // supposé retourner { id, email, poste, nom, prenom, service }
+  return res.json();
 }
 
 // ── HEADERS ───────────────────────────────────────────────────
@@ -59,14 +58,25 @@ export async function searchPatients(q: string) {
 }
 
 // ── PRESCRIPTIONS ─────────────────────────────────────────────
+async function handleResponse(res: Response) {
+  if (!res.ok) {
+    let message = 'Erreur lors de la création de la prescription.';
+    try {
+      const error = await res.json();
+      message = error.message || message;
+    } catch {}
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 export async function creerPrescriptionMedicale(data: unknown) {
   const res = await fetch(`${API_URL}/prescriptions/medicale`, {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionNonMedicale(data: unknown) {
@@ -75,8 +85,7 @@ export async function creerPrescriptionNonMedicale(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionSurveillance(data: unknown) {
@@ -85,8 +94,7 @@ export async function creerPrescriptionSurveillance(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionTransfusion(data: unknown) {
@@ -95,8 +103,7 @@ export async function creerPrescriptionTransfusion(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionBloc(data: unknown) {
@@ -105,8 +112,7 @@ export async function creerPrescriptionBloc(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionLabo(data: unknown) {
@@ -115,8 +121,7 @@ export async function creerPrescriptionLabo(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionImagerie(data: unknown) {
@@ -125,8 +130,7 @@ export async function creerPrescriptionImagerie(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionAnapath(data: unknown) {
@@ -135,8 +139,7 @@ export async function creerPrescriptionAnapath(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionEEG(data: unknown) {
@@ -145,8 +148,7 @@ export async function creerPrescriptionEEG(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionKine(data: unknown) {
@@ -155,8 +157,7 @@ export async function creerPrescriptionKine(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionDialyse(data: unknown) {
@@ -165,8 +166,7 @@ export async function creerPrescriptionDialyse(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function creerPrescriptionEndoscopie(data: unknown) {
@@ -175,8 +175,7 @@ export async function creerPrescriptionEndoscopie(data: unknown) {
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Erreur création prescription');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function getPrescriptionsPatient(type: string, patientId: string) {
@@ -187,7 +186,6 @@ export async function getPrescriptionsPatient(type: string, patientId: string) {
   return res.json();
 }
 
-// ── NOTIFICATIONS ─────────────────────────────────────────────
 export async function notifierInfirmierMedicale(prescriptionId: string) {
   const res = await fetch(`${API_URL}/notifications/medicale/${prescriptionId}`, {
     method: 'POST',

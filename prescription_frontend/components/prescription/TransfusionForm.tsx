@@ -30,6 +30,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const isFormValid = renseignements.trim() && groupage && produit && quantite.trim();
+  console.log('isFormValid', { renseignements: renseignements.trim(), groupage, produit, quantite: quantite.trim() });
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
 
   function buildTransfusionSummary(): string {
@@ -124,9 +125,10 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
             </div>
             {atcd && <div style={{ marginTop: 10 }}><label className="lbl">Incident transfusionnel <span className="req">*</span></label><textarea rows={2} placeholder="Décrire l'incident..." value={incident} onChange={e => setIncident(e.target.value)} /></div>}
           </div>
-          <button className="bp" onClick={() => setShowModal(true)} style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider — Envoyer au dépôt de sang"}
-          </button>
+          <button className="bp" onClick={() => setShowModal(true)} disabled={!isFormValid || loading} style={{ opacity: isFormValid && !loading ? 1 : 0.5, marginTop: 0 }}
+>
+  <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider — Envoyer au dépôt de sang"}
+</button>
         </div>
       </div>
 

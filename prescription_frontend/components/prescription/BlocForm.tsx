@@ -150,7 +150,7 @@ export default function BlocForm({ patient, prescripteur }: Props) {
           <button
             className="bp"
             onClick={() => setShowModal(true)}
-            style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}
+            style={{ opacity: isFormValid && !loading ? 1 : 0.5, marginTop: 0 }} disabled={!isFormValid || loading}
           >
             <span className="ms">medical_services</span>{loading ? "Envoi..." : "Valider — Envoyer demande de CPA"}
           </button>

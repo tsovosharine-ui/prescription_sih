@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { BlocService } from './bloc.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { CreateBlocDto } from './dto/create-bloc.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/bloc')
@@ -8,22 +9,7 @@ export class BlocController {
   constructor(private service: BlocService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: any) {
+  create(@Request() req: any, @Body() dto: CreateBlocDto) {
     return this.service.create(req.user.sub, dto);
-  }
-
-  @Get('patient/:patientId')
-  findByPatient(@Param('patientId') patientId: string) {
-    return this.service.findByPatient(patientId);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
-  }
-
-  @Put(':id/statut')
-  updateStatut(@Param('id') id: string, @Body() dto: { statut: string }) {
-    return this.service.updateStatut(id, dto.statut);
   }
 }

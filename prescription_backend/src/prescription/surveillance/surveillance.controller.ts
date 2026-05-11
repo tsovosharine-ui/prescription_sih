@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, UseGuards, Request } from '@nestjs/common';
 import { SurveillanceService } from './surveillance.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { CreateSurveillanceDto } from './dto/create-surveillance.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/surveillance')
@@ -8,7 +9,7 @@ export class SurveillanceController {
   constructor(private service: SurveillanceService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: any) {
+  create(@Request() req: any, @Body() dto: CreateSurveillanceDto) {
     return this.service.create(req.user.sub, dto);
   }
 

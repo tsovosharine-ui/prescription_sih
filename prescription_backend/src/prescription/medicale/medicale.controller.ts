@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, UseGuards, Request } from '@nestjs/common';
 import { MedicaleService } from './medicale.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { CreateMedicaleDto } from './dto/create-medicale.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/medicale')
@@ -8,7 +9,7 @@ export class MedicaleController {
   constructor(private service: MedicaleService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: any) {
+  create(@Request() req: any, @Body() dto: CreateMedicaleDto) {
     return this.service.create(req.user.sub, dto);
   }
 
