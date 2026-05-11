@@ -16,7 +16,7 @@ import EndoscopieForm from '@/components/prescription/para/EndoscopieForm';
 import BlocForm from '@/components/prescription/BlocForm';
 import { login } from '@/lib/api';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 async function fetchWithToken(url: string, token: string) {
   const res = await fetch(url, {
@@ -32,12 +32,10 @@ async function fetchWithToken(url: string, token: string) {
 async function getValidToken(): Promise<string> {
   const stored = localStorage.getItem('token');
   if (stored) {
-    // Vérifier si le token est encore valide
     try {
       await fetchWithToken(`${API_URL}/auth/profile`, stored);
       return stored;
     } catch {
-      // Token expiré ou invalide — on refait le login
       localStorage.removeItem('token');
     }
   }
@@ -56,7 +54,6 @@ export default function Home() {
     async function init() {
       try {
         const token = await getValidToken();
-
         const [patientData, userData] = await Promise.all([
           fetchWithToken(`${API_URL}/patients/permanent/IP-2026-00001`, token),
           fetchWithToken(`${API_URL}/auth/profile`, token),
