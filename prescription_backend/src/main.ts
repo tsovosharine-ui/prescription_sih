@@ -13,13 +13,14 @@ async function bootstrap() {
   // Configuration Swagger
   const config = new DocumentBuilder()
     .setTitle('API Prescriptions - CHU Andrainjato')
-    .setDescription('Documentation interactive de l’API du module Prescription')
+    .setDescription('Documentation interactive de l\'API du module Prescription')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(3001);
+  // PORT fourni par Render (ou 3001 en local)
+  await app.listen(process.env.PORT || 3001);
 }
 bootstrap();
