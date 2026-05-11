@@ -21,7 +21,7 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
   const [renseignements, setRenseignements] = useState("");
   const [questionRadio, setQuestionRadio] = useState("");
   const [imgType, setImgType] = useState<ImgType>("scan");
-  const [notes, setRemarques] = useState("");
+  const [remarques, setRemarques] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,8 +79,7 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
     setShowModal(false);
     setLoading(true);
     setApiError("");
-
-    // Construire l'objet examens complet (imgType comme champ typeExamen)
+    // Construire l'objet examens
     const examens: any = {
       typeExamen: imgType,
       estHospitalise,
@@ -89,42 +88,20 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
       moyenDeplacement,
       questionRadio,
     };
-
     if (imgType === "scan") {
       examens.scanner = {
-        type: scanType,
-        precisions: scanPrecisions,
-        glasgow: scanGlasgow,
-        agite: scanAgite,
-        allergie: scanAllergie,
-        allergieDetail: scanAllergieDetail,
-        creatinine: scanCreatinine,
-        clearance: scanClearance,
-        diabete: scanDiabete,
+        type: scanType, precisions: scanPrecisions, glasgow: scanGlasgow, agite: scanAgite,
+        allergie: scanAllergie, allergieDetail: scanAllergieDetail, creatinine: scanCreatinine,
+        clearance: scanClearance, diabete: scanDiabete,
       };
     } else if (imgType === "echo") {
-      examens.echographie = {
-        type: echoType,
-        doppler: echoDoppler,
-        precisions: echoPrecisions,
-      };
+      examens.echographie = { type: echoType, doppler: echoDoppler, precisions: echoPrecisions };
     } else if (imgType === "rx") {
-      examens.radiographie = {
-        type: rxType,
-        incidences: rxIncidences,
-        precisions: rxPrecisions,
-      };
+      examens.radiographie = { type: rxType, incidences: rxIncidences, precisions: rxPrecisions };
     } else if (imgType === "geste") {
-      examens.geste = {
-        type: gesteType,
-        precisions: gestePrecisions,
-      };
+      examens.geste = { type: gesteType, precisions: gestePrecisions };
     } else if (imgType === "rxsp") {
-      examens.radioSpeciale = {
-        type: rxspType,
-        preparation: rxspPrep,
-        precisions: rxspPrecisions,
-      };
+      examens.radioSpeciale = { type: rxspType, preparation: rxspPrep, precisions: rxspPrecisions };
     }
 
     try {
@@ -133,8 +110,8 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
         urgence,
         alertes,
         renseignements,
-        notes,
-        examens, // tout est dans cet objet, y compris imgType (comme typeExamen)
+        notes: remarques,   // le backend attend "notes"
+        examens,
       });
       showToast("Demande d'imagerie envoyée au service");
       // reset
@@ -248,6 +225,7 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
                     <span className="ms" style={{ color: "#d97706", fontSize: 16 }}>checklist</span>
                     <strong style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".8px", color: "#92400e" }}>Checklist obligatoire — scanner</strong>
                   </div>
+                  {/* Checklist complète */}
                   <div style={{ marginBottom: 10, fontSize: 12, color: "var(--txt)" }}>
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>Hémodynamique instable ou Glasgow &lt; 8 ?</div>
                     <div style={{ display: "flex", gap: 12 }}>
@@ -383,12 +361,6 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
               </div>
             )}
           </div>
-
-          {/* Remarques complémentaires */}
-          <div className="card mb12" style={{ padding: 12 }}>
-            <label className="lbl">Remarques complémentaires</label>
-            <textarea rows={2} value={notes} onChange={e => setRemarques(e.target.value)} placeholder="Informations utiles pour le radiologue..." />
-          </div>
         </div>
 
         {/* COLONNE DROITE — sticky */}
@@ -410,6 +382,12 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
             <textarea rows={1} value={alertes} onChange={e => setAlertes(e.target.value)}
               placeholder="Allergie produit de contraste, claustrophobie, pace-maker, grossesse..."
               style={{ background: "var(--red-lt)", border: "1.5px solid var(--red-bdr)", padding: '8px 12px' }} />
+          </div>
+
+          {/* Remarques complémentaires (déplacé à droite) */}
+          <div className="card" style={{ padding: 12 }}>
+            <label className="lbl">Remarques complémentaires</label>
+            <textarea rows={2} value={remarques} onChange={e => setRemarques(e.target.value)} placeholder="Informations utiles pour le radiologue..." />
           </div>
 
           <button className="bp" onClick={() => setShowModal(true)}

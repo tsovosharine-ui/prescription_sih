@@ -75,6 +75,7 @@ model PrescriptionMedicale {
 
   patient      Patient @relation(fields: [patientId], references: [id])
   prescripteur User    @relation(fields: [prescripteurId], references: [id])
+  notifications NotificationInfirmier[]
   medicaments  Medicament[]
   ordonnance   Ordonnance?
 }
@@ -117,11 +118,13 @@ model PrescriptionNonMedicale {
 
   patient      Patient @relation(fields: [patientId], references: [id])
   prescripteur User    @relation(fields: [prescripteurId], references: [id])
+  notifications NotificationInfirmier[]
   items        ItemNonMedical[]
 }
 
 model ItemNonMedical {
   id             String    @id @default(uuid())
+  typeLabel      String
   prescriptionId String
   type           String
   description    String
@@ -147,6 +150,7 @@ model PrescriptionSurveillance {
 
   patient      Patient @relation(fields: [patientId], references: [id])
   prescripteur User    @relation(fields: [prescripteurId], references: [id])
+  notifications NotificationInfirmier[]
   parametres   ParametreSurveillance[]
 }
 
@@ -331,4 +335,17 @@ model PrescriptionEndoscopie {
 
   patient      Patient @relation(fields: [patientId], references: [id])
   prescripteur User    @relation(fields: [prescripteurId], references: [id])
+}
+
+model NotificationInfirmier {
+  id                       String   @id @default(uuid())
+  prescriptionMedicaleId   String?
+  prescriptionNonMedicaleId String?
+  prescriptionSurveillanceId String?
+  statut                   String   @default("ENVOYE")
+  createdAt                DateTime @default(now())
+
+  prescriptionMedicale   PrescriptionMedicale?   @relation(fields: [prescriptionMedicaleId], references: [id])
+  prescriptionNonMedicale PrescriptionNonMedicale? @relation(fields: [prescriptionNonMedicaleId], references: [id])
+  prescriptionSurveillance PrescriptionSurveillance? @relation(fields: [prescriptionSurveillanceId], references: [id])
 }

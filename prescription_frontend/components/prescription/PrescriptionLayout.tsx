@@ -8,10 +8,12 @@ export type Section =
   | 'bloc' | 'para';
 
 interface PrescriptionLayoutProps {
+  patient?: { nom?: string; prenom?: string; age?: number; idPermanent?: string; allergies?: string[] };
+  prescripteur?: { nom?: string; prenom?: string; service?: string };
   children: (activeSection: Section) => React.ReactNode;
 }
 
-export default function PrescriptionLayout({ children }: PrescriptionLayoutProps) {
+export default function PrescriptionLayout({ patient, prescripteur, children }: PrescriptionLayoutProps) {
   const [activeSection, setActiveSection] = useState<Section>('med');
   const [activeParaSection, setActiveParaSection] = useState<Section>('labo');
 
@@ -47,27 +49,36 @@ export default function PrescriptionLayout({ children }: PrescriptionLayoutProps
               <span className="ms" style={{fontSize:22, color:'#fff'}}>arrow_back_ios</span>
             </button>
             <span style={{color:'#fff', fontSize:17, fontWeight:700, letterSpacing:'.2px'}}>Prescriptions</span>
+            {prescripteur && (
+              <span style={{color:'rgba(255,255,255,0.7)', fontSize:12, marginLeft:8}}>
+                Dr {prescripteur.nom || prescripteur.prenom} — {prescripteur.service}
+              </span>
+            )}
           </div>
           <div style={{width:34, height:34, borderRadius:'50%', background:'rgba(255,255,255,0.15)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:15, fontWeight:700}}>N</div>
         </div>
       </div>
 
       {/* BARRE PATIENT */}
-      <div style={{background:'var(--card)', borderBottom:'1px solid var(--bdr)', flexShrink:0, padding:'0 16px'}}>
-        <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', height:48, gap:12}}>
-          <div style={{display:'flex', alignItems:'center', gap:10}}>
-            <span style={{background:'var(--navy)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:6, padding:'3px 8px', letterSpacing:'.5px', flexShrink:0}}>IP-2025-04872</span>
-            <div>
-              <span style={{fontSize:14, fontWeight:700, color:'var(--txt)'}}>RAKOTO Jean-Pierre</span>
-              <span style={{fontSize:12, color:'var(--txt3)', marginLeft:8}}>38 ans · M · Hospitalisation — Médecine interne</span>
+      {patient && (
+        <div style={{background:'var(--card)', borderBottom:'1px solid var(--bdr)', flexShrink:0, padding:'0 16px'}}>
+          <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', height:48, gap:12}}>
+            <div style={{display:'flex', alignItems:'center', gap:10}}>
+              <span style={{background:'var(--navy)', color:'#fff', fontSize:11, fontWeight:700, borderRadius:6, padding:'3px 8px', letterSpacing:'.5px', flexShrink:0}}>{patient.idPermanent || 'IP-2026-00001'}</span>
+              <div>
+                <span style={{fontSize:14, fontWeight:700, color:'var(--txt)'}}>{patient.nom} {patient.prenom}</span>
+                <span style={{fontSize:12, color:'var(--txt3)', marginLeft:8}}>{patient.age} ans · Hospitalisation</span>
+              </div>
             </div>
-          </div>
-          <div style={{display:'flex', alignItems:'center', gap:5, background:'#fef3c7', border:'1px solid #fbbf24', borderRadius:8, padding:'4px 10px', flexShrink:0}}>
-            <span className="ms" style={{fontSize:14, color:'#d97706'}}>warning</span>
-            <span style={{fontSize:12, fontWeight:600, color:'#92400e'}}>Allergie : Pénicilline</span>
+            {patient.allergies && patient.allergies.length > 0 && (
+              <div style={{display:'flex', alignItems:'center', gap:5, background:'#fef3c7', border:'1px solid #fbbf24', borderRadius:8, padding:'4px 10px', flexShrink:0}}>
+                <span className="ms" style={{fontSize:14, color:'#d97706'}}>warning</span>
+                <span style={{fontSize:12, fontWeight:600, color:'#92400e'}}>Allergie : {patient.allergies.join(', ')}</span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* NAVIGATION PRINCIPALE */}
       <div style={{background:'var(--card)', borderBottom:'1px solid var(--bdr)', flexShrink:0, boxShadow:'0 2px 8px rgba(0,0,0,.04)'}}>

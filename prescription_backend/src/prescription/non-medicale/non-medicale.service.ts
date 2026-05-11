@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -11,12 +11,7 @@ export class NonMedicaleService {
       data: {
         ...rest,
         prescripteurId,
-        items: {
-          create: items.map((i: any) => ({
-            ...i,
-            dateDebut: i.dateDebut ? new Date(i.dateDebut) : undefined,
-          })),
-        },
+        items: { create: items },
       },
       include: { items: true },
     });
@@ -24,18 +19,29 @@ export class NonMedicaleService {
 
   async findByPatient(patientId: string) {
     return this.prisma.prescriptionNonMedicale.findMany({
-      where: { patientId },
-      include: { items: true, prescripteur: { select: { nom: true, prenoms: true } } },
-      orderBy: { createdAt: 'desc' },
+      where: { patientId, statut: 'ACTIVE' },
+      include: {
+        items: {
+          select: {
+            typeLabel: true,
+            description: true,
+            duree: true,
+            frequence: true,
+            dateDebut: true,
+          },
+        },
+        prescripteur: {
+          select: { nom: true },
+        },
+      },
     });
   }
 
   async findOne(id: string) {
-    const p = await this.prisma.prescriptionNonMedicale.findUnique({
-      where: { id },
-      include: { items: true, prescripteur: { select: { nom: true, prenoms: true } }, patient: true },
-    });
-    if (!p) throw new NotFoundException('Prescription introuvable');
-    return p;
+    return this.prisma.prescriptionNonMedicale.findUnique({ where: { id }, include: { items: true } });
+  }
+
+  async updateStatut(id: string, statut: string) {
+    return this.prisma.prescriptionNonMedicale.update({ where: { id }, data: { statut } });
   }
 }

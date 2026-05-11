@@ -1,11 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { creerPrescriptionSurveillance, getPrescriptionsPatient, notifierInfirmierSurveillance, updateStatutPrescription } from '@/lib/api';
 
 interface SvItem {
-  id: string; parametre: string; parametreLabel: string; customNom: string; customDesc: string;
+  id: string; parametre: string; parametre: string; customNom: string; customDesc: string;
   customUnite: string; customTarget: string; taille: string; sngTypes: string[]; sngRemarques: string;
   drainLocalisation: string; drainTypes: string[]; frequence: string; duree: string; seuil: string;
+}
+
+interface SurveillanceEnCours {
+  id: string;
+  parametres: { parametre: string; frequence: string; duree?: string; seuil?: string }[];
+  notifierInfirmier?: boolean;
+  prescripteur?: { nom: string };
+  createdAt: string;
 }
 
 const PARAMS = [
@@ -45,35 +54,126 @@ const SNG_TYPES = ['Résidu gastrique', 'Volume aspiré', 'Aspect', 'Perméabili
 const DRAIN_TYPES = ['Volume drainé', 'Aspect', 'Perméabilité', 'Point insertion'];
 const FREQ_OPTIONS = ['Toutes les heures', 'Toutes les 2h', 'Toutes les 4h', 'Toutes les 6h', 'Toutes les 8h', 'Toutes les 12h', '1× par jour', 'Avant chaque repas', 'En continu'];
 
-export default function SurveillanceForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function SurveillanceForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence] = useState<'n'|'u'|'tu'>('n');
   const [alertes, setAlertes] = useState('');
   const [parametre, setParametre] = useState(''); const [customNom, setCustomNom] = useState(''); const [customDesc, setCustomDesc] = useState('');
   const [customUnite, setCustomUnite] = useState(''); const [customTarget, setCustomTarget] = useState(''); const [taille, setTaille] = useState('');
   const [sngTypes, setSngTypes] = useState<string[]>([]); const [sngRemarques, setSngRemarques] = useState('');
   const [drainLocalisation, setDrainLocalisation] = useState(''); const [drainTypes, setDrainTypes] = useState<string[]>([]);
-  const [frequence, setFrequence] = useState(''); const [duree, setDuree] = useState(''); const [seuil, setSeuil] = useState('');
+  const [frequence, setFrequence] = useState(''); const [duree, setDuree] = useState('');
+  const [dureeUnite, setDureeUnite] = useState('jours');
+  const [seuil, setSeuil] = useState('');
   const [items, setItems] = useState<SvItem[]>([]); const [notifOn, setNotifOn] = useState(false);
   const [showModal, setShowModal] = useState(false); const [toast, setToast] = useState('');
   const [notes, setNotes] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<SurveillanceEnCours[]>([]);
 
-  const isFormValid = parametre && frequence;
-
+  const isAddValid = parametre && frequence && duree.trim() && !isNaN(Number(duree));
+  const canValidate = items.length > 0;
   const urgenceClasses: Record<string, string> = { n: "un", u: "uu", tu: "utu" };
+
+  function parseDureeMs(d: string): number {
+    const parts = d.split(' ');
+    if (parts.length !== 2) return 0;
+    const val = Number(parts[0]);
+    const unit = parts[1];
+    if (isNaN(val)) return 0;
+    switch (unit) {
+      case 'heures': return val * 3600_000;
+      case 'jours':  return val * 86400_000;
+      case 'mois':   return val * 30 * 86400_000;
+      default: return 0;
+    }
+  }
+
+  // pour les surveillances, pas de dateDebut/duree dans les parametres frontend => pas de filtrage auto
+  // mais on garde la possibilité de terminer manuellement
+
+  useEffect(() => {
+    async function fetchSurveillances() {
+      try {
+        const data = await getPrescriptionsPatient('surveillance', patient.id);
+        setPrescriptionsEnCours(data);
+      } catch {}
+    }
+    fetchSurveillances();
+  }, [patient.id]);
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
   function toggleCheck(list: string[], setList: (v: string[]) => void, val: string) { setList(list.includes(val) ? list.filter(x => x !== val) : [...list, val]); }
+
   function handleAdd() {
-    if (!isFormValid) return;
-    setItems(prev => [...prev, { id: Date.now().toString(), parametre, parametreLabel: parametre === 'custom' ? customNom || 'Paramètre personnalisé' : PARAM_LABEL[parametre] ?? parametre, customNom, customDesc, customUnite, customTarget, taille, sngTypes, sngRemarques, drainLocalisation, drainTypes, frequence, duree, seuil }]);
-    setParametre(''); setCustomNom(''); setCustomDesc(''); setCustomUnite(''); setCustomTarget(''); setTaille(''); setSngTypes([]); setSngRemarques(''); setDrainLocalisation(''); setDrainTypes([]); setFrequence(''); setDuree(''); setSeuil('');
+    if (!isAddValid) return;
+    const dureeComplete = `${duree} ${dureeUnite}`;
+    setItems(prev => [...prev, {
+      id: Date.now().toString(), parametre, parametreLabel: parametre === 'custom' ? customNom || 'Paramètre personnalisé' : PARAM_LABEL[parametre] ?? parametre,
+      customNom, customDesc, customUnite, customTarget, taille, sngTypes, sngRemarques,
+      drainLocalisation, drainTypes, frequence, duree: dureeComplete, seuil
+    }]);
+    setParametre(''); setCustomNom(''); setCustomDesc(''); setCustomUnite(''); setCustomTarget(''); setTaille('');
+    setSngTypes([]); setSngRemarques(''); setDrainLocalisation(''); setDrainTypes([]);
+    setFrequence(''); setDuree(''); setDureeUnite('jours'); setSeuil('');
   }
   function handleDelete(id: string) { setItems(prev => prev.filter(i => i.id !== id)); }
+
+  async function refreshPrescriptions() {
+    try {
+      const data = await getPrescriptionsPatient('surveillance', patient.id);
+      setPrescriptionsEnCours(data);
+    } catch {}
+  }
+
+  async function terminerPrescription(id: string) {
+    try {
+      await updateStatutPrescription('surveillance', id, 'TERMINEE');
+      await refreshPrescriptions();
+    } catch { console.error('Erreur terminaison'); }
+  }
+
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError('');
+    try {
+      const result = await creerPrescriptionSurveillance({
+        patientId: patient.id,
+        notes,
+        notifierInfirmier: notifOn,
+        parametres: items.map(({ id, parametreLabel, customNom, customDesc, customUnite, customTarget, taille, sngTypes, sngRemarques, drainLocalisation, drainTypes, ...rest }) => rest),
+      });
+      if (notifOn && result?.id) {
+        console.log('Envoi notification surveillance pour id', result.id);
+        notifierInfirmierSurveillance(result.id).catch(e => console.error('Erreur notification surveillance', e));
+      }
+      showToast('Surveillance validée');
+      setItems([]);
+      setNotes('');
+      setNotifOn(false);
+      setUrgence('n');
+      setAlertes('');
+      await refreshPrescriptions();
+    } catch {
+      setApiError("Erreur lors de l'envoi. Vérifiez la connexion.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const desc = PARAM_DESC[parametre] ?? '';
 
   return (
     <div>
       <div className="info-note mb12"><span className="ms">info</span><span>Quand l'infirmier enregistre un paramètre surveillé, le résultat est transféré automatiquement dans l'observation médicale.</span></div>
+
+      {apiError && <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>{apiError}</div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
         {/* COLONNE GAUCHE */}
@@ -103,13 +203,25 @@ export default function SurveillanceForm() {
                 <label className="lbl">Type de surveillance drain</label><div className="g2">{DRAIN_TYPES.map(t => <label key={t} className="rc"><input type="checkbox" checked={drainTypes.includes(t)} onChange={() => toggleCheck(drainTypes, setDrainTypes, t)} style={{ accentColor: 'var(--navy)' }} /><span>{t}</span></label>)}</div>
               </div>
             )}
-            <div className="g2 mb12"><div><label className="lbl">Fréquence <span className="req">*</span></label><select value={frequence} onChange={e => setFrequence(e.target.value)}><option value="">Sélectionner</option>{FREQ_OPTIONS.map(f => <option key={f}>{f}</option>)}</select></div><div><label className="lbl">Durée</label><input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 48h, 1 semaine..." /></div></div>
+            <div className="g2 mb12">
+              <div><label className="lbl">Fréquence <span className="req">*</span></label><select value={frequence} onChange={e => setFrequence(e.target.value)}><option value="">Sélectionner</option>{FREQ_OPTIONS.map(f => <option key={f}>{f}</option>)}</select></div>
+              <div>
+                <label className="lbl">Durée</label>
+                <div className="g2">
+                  <input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 48" />
+                  <select value={dureeUnite} onChange={e => setDureeUnite(e.target.value)}>
+                    <option value="heures">heures</option>
+                    <option value="jours">jours</option>
+                    <option value="mois">mois</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div className="mb12"><label className="lbl">Valeurs cibles / Seuils d'alerte</label><input type="text" value={seuil} onChange={e => setSeuil(e.target.value)} placeholder="Ex : TA > 160/90 → alerter médecin..." /></div>
-            <button className="badd" onClick={handleAdd} style={{ opacity: isFormValid ? 1 : 0.5 }}><span className="ms" style={{ fontSize: 17 }}>add</span> Ajouter la surveillance</button>
+            <button className="badd" onClick={handleAdd} style={{ opacity: isAddValid ? 1 : 0.5 }}><span className="ms" style={{ fontSize: 17 }}>add</span> Ajouter la surveillance</button>
           </div>
 
-          {/* Liste */}
-          <div className="sh">Surveillances en cours</div>
+          <div className="sh">Surveillances ajoutées</div>
           <div className="mb12">
             {items.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 20, color: 'var(--txt3)', fontSize: 13 }}>Aucune surveillance ajoutée</div>
@@ -121,6 +233,40 @@ export default function SurveillanceForm() {
 
         {/* COLONNE DROITE — sticky */}
         <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="active-rx">
+            <div className="active-rx-header"><span className="ms">pending_actions</span><span>Surveillances en cours</span></div>
+            {prescriptionsEnCours.length > 0 ? prescriptionsEnCours.map(p => (
+              <div key={p.id} style={{ position: 'relative' }}>
+                {p.parametres?.map((param, idx) => (
+                  <div key={`${p.id}-${idx}`} className="active-rx-item">
+                    <strong>{PARAM_LABEL[param.parametre] || param.parametre}</strong>
+                    <span> — {param.frequence}{param.duree ? ` · ${param.duree}` : ''}{param.seuil ? ` (seuil: ${param.seuil})` : ''}{p.prescripteur?.nom ? ` · Dr ${p.prescripteur.nom}` : ''}</span>
+                    {p.notifierInfirmier && <span style={{ display: 'block', fontSize: 10, color: 'var(--navy)', marginTop: 2 }}>Infirmier notifié</span>}
+                  </div>
+                ))}
+                <button
+                  onClick={() => terminerPrescription(p.id)}
+                  title="Terminer cette prescription"
+                  style={{
+                    position: 'absolute',
+                    right: 4,
+                    top: 4,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--txt3)',
+                    fontSize: 16,
+                    lineHeight: 1,
+                  }}
+                >
+                  <span className="ms">check_circle</span>
+                </button>
+              </div>
+            )) : (
+              <div className="active-rx-item"><span style={{ color: 'var(--txt3)' }}>Aucune surveillance en cours</span></div>
+            )}
+          </div>
+
           <div className="card" style={{ padding: 8 }}>
             <label className="lbl">Degré d'urgence <span className="req">*</span></label>
             <div className={`urgr ${urgenceClasses[urgence]}`} style={{ marginBottom: 8 }}>
@@ -150,13 +296,20 @@ export default function SurveillanceForm() {
             </div>
             {notifOn && <div className="hint"><span className="ms" style={{ fontSize: 13, verticalAlign: 'middle', color: 'var(--navy)' }}>notifications_active</span> Notification envoyée aux infirmiers de garde du service.</div>}
           </div>
-          <button className="bp" onClick={() => setShowModal(true)} style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>Valider
+
+          {!canValidate && (
+            <div style={{ fontSize: 11, color: 'var(--red)', textAlign: 'center', marginTop: -8 }}>
+              Ajoutez au moins une surveillance.
+            </div>
+          )}
+          <button className="bp" onClick={() => setShowModal(true)}
+            style={{ opacity: canValidate && !loading ? 1 : 0.5, pointerEvents: canValidate && !loading ? "auto" : "none", marginTop: 0 }}>
+            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider"}
           </button>
         </div>
       </div>
 
-      {showModal && <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}><div className="mbox"><h3>Valider — Surveillance</h3><p>La prescription sera validée et transmise.</p><div className="mbtns"><button className="bca" onClick={() => setShowModal(false)}>Annuler</button><button className="bok" onClick={() => { setShowModal(false); showToast('Surveillance validée'); }}>Confirmer</button></div></div></div>}
+      {showModal && <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}><div className="mbox"><h3>Valider — Surveillance</h3><p>La prescription sera validée et transmise.</p><div className="mbtns"><button className="bca" onClick={() => setShowModal(false)}>Annuler</button><button className="bok" onClick={handleSubmit}>Confirmer</button></div></div></div>}
       {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
     </div>
   );

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projet Prescription - CHU Andrainjato - Documentation</title>
+    <style>
+        :root {
+            --navy: #003178;
+            --navy-lt: #e8eef8;
+            --bg: #f0f2f7;
+            --card: #fff;
+            --txt: #1a1d2e;
+            --txt2: #5c6575;
+            --bdr: #e5e7eb;
+            --red: #dc2626;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); line-height: 1.6; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        header { background: var(--navy); color: white; padding: 24px; border-radius: 16px; margin-bottom: 24px; }
+        header h1 { font-size: 28px; margin-bottom: 8px; }
+        header p { opacity: 0.9; }
+        .card { background: var(--card); border-radius: 14px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+        h2 { font-size: 20px; color: var(--navy); margin-bottom: 16px; border-bottom: 2px solid var(--navy-lt); padding-bottom: 8px; }
+        h3 { font-size: 16px; margin: 16px 0 8px; color: var(--txt2); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+        .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 6px; }
+        .tag-green { background: #dcfce7; color: #166534; }
+        .tag-blue { background: var(--navy-lt); color: var(--navy); }
+        .tag-yellow { background: #fef3c7; color: #92400e; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { padding: 10px 14px; border-bottom: 1px solid var(--bdr); text-align: left; }
+        th { background: var(--navy-lt); color: var(--navy); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 10px; overflow-x: auto; font-size: 13px; }
+        .flow { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; font-weight: 600; }
+        .flow span { background: var(--navy); color: white; padding: 6px 14px; border-radius: 6px; }
+        .flow .arrow { color: var(--navy); font-size: 20px; }
+        ul { padding-left: 20px; margin: 8px 0; }
+        li { margin-bottom: 4px; }
+        .alert { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 10px; padding: 12px; margin: 12px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Projet Prescription - SIH CHU Andrainjato</h1>
+            <p>Module de prescription médicale – Frontend Next.js & Backend NestJS</p>
+            <p style="font-size:14px; margin-top:8px;">Version 1.0 – Documentation générée le 10/05/2026</p>
+        </header>
+
+        <div class="card">
+            <h2>🔧 Stack technique</h2>
+            <div class="grid">
+                <div><strong>Frontend</strong><br>Next.js 16 + TypeScript + CSS custom (variables CSS)</div>
+                <div><strong>Backend</strong><br>NestJS + Prisma 5 + PostgreSQL 18</div>
+                <div><strong>Authentification</strong><br>JWT (access token)</div>
+                <div><strong>Environnement</strong><br>Kali Linux (terminal uniquement, pas d'IDE graphique)</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ Flux de données</h2>
+            <div class="flow">
+                <span>React Form</span> <span class="arrow">→</span>
+                <span>lib/api.ts</span> <span class="arrow">→</span>
+                <span>NestJS Controller</span> <span class="arrow">→</span>
+                <span>Prisma Service</span> <span class="arrow">→</span>
+                <span>PostgreSQL</span>
+            </div>
+            <p>Le frontend utilise les fonctions de <code>lib/api.ts</code> pour appeler l'API REST (port 3001). Chaque fonction envoie un objet JSON avec <code>patientId</code>, les champs spécifiques, et le token JWT dans le header.</p>
+        </div>
+
+        <div class="card">
+            <h2>📁 Structure des dossiers</h2>
+            <table>
+                <tr><th>Dossier/Fichier</th><th>Rôle</th></tr>
+                <tr><td><code>app/page.tsx</code></td><td>Point d'entrée, chargement du patient et prescripteur, routing</td></tr>
+                <tr><td><code>app/globals.css</code></td><td>Design system complet (variables, classes)</td></tr>
+                <tr><td><code>lib/api.ts</code></td><td>Fonctions d'appel à l'API</td></tr>
+                <tr><td><code>components/prescription/PrescriptionLayout.tsx</code></td><td>Header, barre patient, navigation</td></tr>
+                <tr><td><code>components/prescription/MedicaleForm.tsx</code></td><td>Prescription médicamenteuse + ordonnance</td></tr>
+                <tr><td><code>components/prescription/NonMedicaleForm.tsx</code></td><td>Prescription non médicamenteuse</td></tr>
+                <tr><td><code>components/prescription/SurveillanceForm.tsx</code></td><td>Prescription de surveillance</td></tr>
+                <tr><td><code>components/prescription/TransfusionForm.tsx</code></td><td>Prescription transfusion sanguine</td></tr>
+                <tr><td><code>components/prescription/BlocForm.tsx</code></td><td>Prescription bloc opératoire</td></tr>
+                <tr><td><code>components/prescription/para/LaboForm.tsx</code></td><td>Laboratoire</td></tr>
+                <tr><td><code>components/prescription/para/ImagerieForm.tsx</code></td><td>Imagerie médicale</td></tr>
+                <tr><td><code>components/prescription/para/AnapathForm.tsx</code></td><td>Anatomopathologie (7 onglets)</td></tr>
+                <tr><td><code>components/prescription/para/EEGForm.tsx</code></td><td>EEG</td></tr>
+                <tr><td><code>components/prescription/para/KineForm.tsx</code></td><td>Kinésithérapie</td></tr>
+                <tr><td><code>components/prescription/para/DiaryseForm.tsx</code></td><td>Dialyse</td></tr>
+                <tr><td><code>components/prescription/para/EndoscopieForm.tsx</code></td><td>Endoscopie</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>📋 État des formulaires</h2>
+            <table>
+                <tr><th>Formulaire</th><th>Backend</th><th>Prescriptions en cours</th><th>Particularités</th></tr>
+                <tr><td>MedicaleForm</td><td><span class="tag tag-green">✅ Connecté</span></td><td><span class="tag tag-green">✅ Dynamique</span></td><td>Autocomplétion simulée, double modale (ordonnance)</td></tr>
+                <tr><td>NonMedicaleForm</td><td><span class="tag tag-green">✅</span></td><td><span class="tag tag-green">✅</span></td><td>Liste des items ajoutés</td></tr>
+                <tr><td>SurveillanceForm</td><td><span class="tag tag-green">✅</span></td><td><span class="tag tag-green">✅</span></td><td>Paramètres avec sous-options (SNG, drain)</td></tr>
+                <tr><td>TransfusionForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>Envoi au dépôt de sang</td></tr>
+                <tr><td>BlocForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>Demande de CPA automatique</td></tr>
+                <tr><td>LaboForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>7 catégories d'analyses</td></tr>
+                <tr><td>ImagerieForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>5 types d'examen (scanner, écho, etc.)</td></tr>
+                <tr><td>AnapathForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>7 onglets (FCV, cyto, liquide, etc.)</td></tr>
+                <tr><td>EEGForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>Protocoles techniques</td></tr>
+                <tr><td>KineForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>Contre-indications à cocher</td></tr>
+                <tr><td>DiaryseForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>Types de dialyse</td></tr>
+                <tr><td>EndoscopieForm</td><td><span class="tag tag-green">✅</span></td><td>-</td><td>Types retirés : Polypectomie, Bronchoscopie, Cystoscopie</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>🎨 Design System (classes CSS importantes)</h2>
+            <div class="grid">
+                <div>
+                    <strong>Cartes & conteneurs</strong>
+                    <ul>
+                        <li><code>.card</code> – carte blanche</li>
+                        <li><code>.active-rx</code> – prescriptions en cours</li>
+                        <li><code>.info-note</code> – note d'information</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>Formulaire</strong>
+                    <ul>
+                        <li><code>.lbl</code> – label</li>
+                        <li><code>.req</code> – astérisque rouge</li>
+                        <li><code>.bp</code> – bouton principal</li>
+                        <li><code>.badd</code> – bouton ajouter</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>Urgence & alertes</strong>
+                    <ul>
+                        <li><code>.urgr</code>, <code>.urgd</code>, <code>.urgs</code></li>
+                        <li><code>.un</code> (normal), <code>.uu</code> (urgent), <code>.utu</code> (STAT)</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>Divers</strong>
+                    <ul>
+                        <li><code>.tog</code> – toggle switch</li>
+                        <li><code>.mb</code> – modale</li>
+                        <li><code>.tst</code> – toast</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📡 Fonctions API disponibles</h2>
+            <ul>
+                <li><code>login(email, password)</code> – Authentification</li>
+                <li><code>getCurrentUser()</code> – Profil du prescripteur connecté</li>
+                <li><code>getPatient(id)</code> – Patient par ID permanent</li>
+                <li><code>creerPrescriptionMedicale(data)</code></li>
+                <li><code>creerPrescriptionNonMedicale(data)</code></li>
+                <li><code>creerPrescriptionSurveillance(data)</code></li>
+                <li><code>creerPrescriptionTransfusion(data)</code></li>
+                <li><code>creerPrescriptionBloc(data)</code></li>
+                <li><code>creerPrescriptionLabo(data)</code></li>
+                <li><code>creerPrescriptionImagerie(data)</code></li>
+                <li><code>creerPrescriptionAnapath(data)</code></li>
+                <li><code>creerPrescriptionEEG(data)</code></li>
+                <li><code>creerPrescriptionKine(data)</code></li>
+                <li><code>creerPrescriptionDialyse(data)</code></li>
+                <li><code>creerPrescriptionEndoscopie(data)</code></li>
+                <li><code>getPrescriptionsPatient(type, patientId)</code> – Pour listes dynamiques</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🔍 Règles métier importantes</h2>
+            <ul>
+                <li>Les prescriptions sont toujours liées à un <strong>patient enregistré</strong> (pas d'anonyme).</li>
+                <li>Degré d'urgence : <strong>Normal</strong>, <strong>Urgent</strong>, <strong>STAT</strong>. Les STAT sont traités en priorité.</li>
+                <li>La prescription médicamenteuse peut générer une <strong>ordonnance</strong> ajustable (quantités par médicament).</li>
+                <li>Les prescriptions en cours sont mises à jour dynamiquement après validation.</li>
+                <li>Les noms de champs côté backend sont stricts (ex: <code>renseignements</code>, pas <code>renseign</code> ; <code>typeEEG</code>, pas <code>eegType</code> ; <code>typeKine</code>...).</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Démarrage rapide</h2>
+            <pre>
+# Terminal 1 : Backend
+cd ~/Documents/prescription/prescription_backend
+sudo pg_ctlcluster 18 main start    # si PostgreSQL ne tourne pas
+npm run start:dev
+
+# Terminal 2 : Frontend
+cd ~/Documents/prescription/prescription_frontend
+npm run dev
+            </pre>
+            <p><strong>Données de test :</strong> Email <code>jean@chu.mg</code> / Mot de passe <code>test1234</code> — Patient <code>IP-2026-00001</code> (RAKOTO Jean-Pierre)</p>
+        </div>
+
+        <div class="alert">
+            <strong>⚠️ Règle absolue :</strong> Toute modification de fichier doit se faire avec <code>cat > fichier << 'EOF'</code>. Ne jamais utiliser <code>sed</code> multiligne. Ne jamais modifier le design sans demande explicite.
+        </div>
+
+        <div class="card">
+            <h2>📌 Prochaines étapes</h2>
+            <ol>
+                <li>Tester chaque formulaire avec le patient test.</li>
+                <li>Vérifier les données en base (<code>npx prisma studio</code>).</li>
+                <li>Connecter la recherche de médicaments au stock pharmacie réel (API externe).</li>
+                <li>Ajouter la gestion des statuts (actif/terminé) pour les prescriptions en cours.</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

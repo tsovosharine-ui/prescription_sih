@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, UseGuards, Request } from '@nestjs/common';
 import { NonMedicaleService } from './non-medicale.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 
@@ -20,5 +20,10 @@ export class NonMedicaleController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
+  }
+
+  @Put(':id/statut')
+  updateStatut(@Param('id') id: string, @Body() dto: { statut: string }) {
+    return this.service.updateStatut(id, dto.statut);
   }
 }

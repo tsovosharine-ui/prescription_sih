@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import { creerPrescriptionMedicale, getPrescriptionsPatient, notifierInfirmierMedicale, updateStatutPrescription } from '@/lib/api';
 
 interface Medicament {
   id: string;
@@ -16,14 +17,46 @@ interface Medicament {
   remarques: string;
 }
 
-const STOCK_MEDICAMENTS = [
-  "Paracétamol 500 mg", "Paracétamol 1 g", "Amoxicilline 500 mg", "Amoxicilline 1 g",
-  "Ciprofloxacine 500 mg", "Métronidazole 500 mg", "Oméprazole 20 mg", "Furosémide 40 mg",
-  "Metformine 500 mg", "Insuline glargine", "Salbutamol inhalateur", "Prednisone 20 mg",
-  "Ibuprofène 400 mg", "Tramadol 50 mg", "Ceftriaxone 1 g",
+interface PrescriptionEnCours {
+  id: string;
+  medicaments: { nom: string; dose: string; quantite: number; frequence: string; voie?: string; dateDebut?: string; duree?: string }[];
+  prescripteur?: { nom: string };
+  notifierInfirmier?: boolean;
+  createdAt: string;
+}
+
+interface StockItem {
+  code: string;
+  nom: string;
+  dose: string;
+  conditionnement: string; // ex: "1 plaquette (16 comprimés)"
+  stockDisponible: number; // nombre d'unités de conditionnement disponibles
+}
+
+const STOCK_MEDICAMENTS: StockItem[] = [
+  { code: "PARA500", nom: "Paracétamol", dose: "500 mg", conditionnement: "1 plaquette (16 comprimés)", stockDisponible: 10 },
+  { code: "PARA1G", nom: "Paracétamol", dose: "1 g", conditionnement: "1 boîte (8 comprimés effervescents)", stockDisponible: 5 },
+  { code: "AMOX500", nom: "Amoxicilline", dose: "500 mg", conditionnement: "1 plaquette (12 gélules)", stockDisponible: 7 },
+  { code: "AMOX1G", nom: "Amoxicilline", dose: "1 g", conditionnement: "1 flacon (poudre pour solution injectable IM/IV)", stockDisponible: 3 },
+  { code: "CIPRO", nom: "Ciprofloxacine", dose: "500 mg", conditionnement: "1 boîte (10 comprimés pelliculés)", stockDisponible: 0 },
+  { code: "METRO", nom: "Métronidazole", dose: "500 mg", conditionnement: "1 plaquette (20 comprimés)", stockDisponible: 4 },
+  { code: "OMEP", nom: "Oméprazole", dose: "20 mg", conditionnement: "1 plaquette (14 gélules gastro-résistantes)", stockDisponible: 9 },
+  { code: "FURO", nom: "Furosémide", dose: "40 mg", conditionnement: "1 boîte (30 comprimés sécables)", stockDisponible: 2 },
+  { code: "METFORMIN", nom: "Metformine", dose: "500 mg", conditionnement: "1 plaquette (28 comprimés pelliculés)", stockDisponible: 6 },
+  { code: "INSULINE", nom: "Insuline glargine", dose: "", conditionnement: "1 stylo prérempli (3 ml)", stockDisponible: 8 },
+  { code: "SALBU", nom: "Salbutamol", dose: "100 µg/dose", conditionnement: "1 flacon aérosol inhalateur (200 doses)", stockDisponible: 0 },
+  { code: "PRED", nom: "Prednisone", dose: "20 mg", conditionnement: "1 boîte (20 comprimés)", stockDisponible: 12 },
+  { code: "IBU", nom: "Ibuprofène", dose: "400 mg", conditionnement: "1 boîte (30 comprimés pelliculés)", stockDisponible: 5 },
+  { code: "TRAMADOL", nom: "Tramadol", dose: "50 mg", conditionnement: "1 plaquette (10 comprimés)", stockDisponible: 1 },
+  { code: "CEFTRIAXONE", nom: "Ceftriaxone", dose: "1 g", conditionnement: "1 flacon (poudre pour solution injectable IM/IV)", stockDisponible: 15 },
 ];
 
-export default function MedicaleForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function MedicaleForm({ patient, prescripteur }: Props) {
   const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [nom, setNom] = useState('');
   const [dose, setDose] = useState('');
@@ -31,19 +64,61 @@ export default function MedicaleForm() {
   const [voie, setVoie] = useState('');
   const [frequence, setFrequence] = useState('');
   const [duree, setDuree] = useState('');
+  const [dureeUnite, setDureeUnite] = useState('jours');
   const [dateDebut, setDateDebut] = useState('');
   const [heureDebut, setHeureDebut] = useState('');
   const [instructions, setInstructions] = useState('');
   const [remarques, setRemarques] = useState('');
   const [notifier, setNotifier] = useState(false);
-  const [showOrdModal, setShowOrdModal] = useState(false);
-  const [showValidModal, setShowValidModal] = useState(false);
   const [remarqueGenerale, setRemarqueGenerale] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<StockItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const [toast, setToast] = useState('');
+  const [showOrdModal, setShowOrdModal] = useState(false);
+  const [showOrdonnanceModal, setShowOrdonnanceModal] = useState(false);
+  const [ordonnanceItems, setOrdonnanceItems] = useState<Map<string, number>>(new Map());
+  const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<PrescriptionEnCours[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const isFormValid = nom.trim() && dose.trim() && frequence && duree.trim();
+  const isFormValid = nom.trim() && dose.trim() && frequence && duree.trim() && !isNaN(Number(duree));
+  const canValidate = medicaments.length > 0;
+
+  function parseDureeMs(d: string): number {
+    const parts = d.split(' ');
+    if (parts.length !== 2) return 0;
+    const val = Number(parts[0]);
+    const unit = parts[1];
+    if (isNaN(val)) return 0;
+    switch (unit) {
+      case 'heures': return val * 3600_000;
+      case 'jours':  return val * 86400_000;
+      case 'mois':   return val * 30 * 86400_000;
+      default: return 0;
+    }
+  }
+
+  function filterExpired(prescriptions: PrescriptionEnCours[]): PrescriptionEnCours[] {
+    const now = Date.now();
+    return prescriptions.filter(p => {
+      return p.medicaments?.some(med => {
+        if (!med.dateDebut || !med.duree) return true;
+        const start = new Date(med.dateDebut).getTime();
+        return (start + parseDureeMs(med.duree)) > now;
+      });
+    });
+  }
+
+  useEffect(() => {
+    async function fetchPrescriptions() {
+      try {
+        const data = await getPrescriptionsPatient('medicale', patient.id);
+        setPrescriptionsEnCours(filterExpired(data));
+      } catch {}
+    }
+    fetchPrescriptions();
+  }, [patient.id]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -55,56 +130,176 @@ export default function MedicaleForm() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
+
   const handleSearchChange = (value: string) => {
     setNom(value);
-    if (value.trim().length > 0) {
-      const filtered = STOCK_MEDICAMENTS.filter(med => med.toLowerCase().includes(value.toLowerCase()));
+    if (value.trim().length > 1) {
+      const q = value.toLowerCase();
+      const filtered = STOCK_MEDICAMENTS.filter(med =>
+        `${med.nom} ${med.dose} ${med.conditionnement}`.toLowerCase().includes(q)
+      );
       setSuggestions(filtered);
-      setShowSuggestions(true);
+      setShowSuggestions(filtered.length > 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
   };
 
-  const selectSuggestion = (med: string) => { setNom(med); setShowSuggestions(false); };
+  const selectSuggestion = (med: StockItem) => {
+    const nomComplet = `${med.nom} ${med.dose} — ${med.conditionnement}`;
+    setNom(nomComplet);
+    setShowSuggestions(false);
+  };
 
   const ajouterMedicament = () => {
     if (!isFormValid) return;
+    const dureeComplete = `${duree} ${dureeUnite}`;
     setMedicaments([...medicaments, {
       id: Date.now().toString(),
-      nom, dose, quantite, voie, frequence, duree, dateDebut, heureDebut, instructions, remarques
+      nom, dose, quantite, voie, frequence, duree: dureeComplete,
+      dateDebut, heureDebut, instructions, remarques
     }]);
     setNom(''); setDose(''); setQuantite(1); setVoie(''); setFrequence('');
-    setDuree(''); setDateDebut(''); setHeureDebut(''); setInstructions(''); setRemarques('');
+    setDuree(''); setDureeUnite('jours'); setDateDebut(''); setHeureDebut('');
+    setInstructions(''); setRemarques('');
     setShowSuggestions(false);
   };
 
   const supprimerMedicament = (id: string) => { setMedicaments(medicaments.filter(m => m.id !== id)); };
 
+  async function refreshPrescriptionsEnCours() {
+    try {
+      const data = await getPrescriptionsPatient('medicale', patient.id);
+      setPrescriptionsEnCours(filterExpired(data));
+    } catch {}
+  }
+
+  async function handleSubmitPrescription() {
+    if (!canValidate) return;
+    setLoading(true);
+    setApiError('');
+    try {
+      const result = await creerPrescriptionMedicale({
+        patientId: patient.id,
+        remarques: remarqueGenerale,
+        notifierInfirmier: notifier,
+        medicaments: medicaments.map(({ id, dateDebut, heureDebut, duree, ...rest }) => ({
+          ...rest,
+          quantite: rest.quantite,
+          duree,
+          dateDebut: dateDebut ? new Date(dateDebut) : undefined,
+          heureDebut: heureDebut || undefined,
+        })),
+      });
+      if (notifier && result?.id) {
+        console.log('Envoi notification pour id', result.id);
+        notifierInfirmierMedicale(result.id).catch(e => console.error('Erreur notification', e));
+      }
+      showToast('Prescription médicamenteuse validée');
+      setMedicaments([]);
+      setRemarqueGenerale('');
+      setNotifier(false);
+      await refreshPrescriptionsEnCours();
+    } catch {
+      setApiError("Erreur lors de l'envoi de la prescription.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function openOrdonnanceModal() {
+    const map = new Map<string, number>();
+    medicaments.forEach(m => map.set(m.id, m.quantite));
+    setOrdonnanceItems(map);
+    setShowOrdModal(false);
+    setShowOrdonnanceModal(true);
+  }
+
+  async function handleCreateOrdonnance() {
+    if (!canValidate) return;
+    setLoading(true);
+    setApiError('');
+    try {
+      const result = await creerPrescriptionMedicale({
+        patientId: patient.id,
+        remarques: remarqueGenerale,
+        notifierInfirmier: notifier,
+        medicaments: medicaments.map(({ id, dateDebut, heureDebut, duree, ...rest }) => ({
+          ...rest,
+          quantite: rest.quantite,
+          duree,
+          dateDebut: dateDebut ? new Date(dateDebut) : undefined,
+          heureDebut: heureDebut || undefined,
+        })),
+      });
+      if (notifier && result?.id) {
+        console.log('Envoi notification pour id', result.id);
+        notifierInfirmierMedicale(result.id).catch(e => console.error('Erreur notification', e));
+      }
+      const medsPourOrdonnance = medicaments
+        .filter(m => (ordonnanceItems.get(m.id) ?? 0) > 0)
+        .map(m => ({
+          nom: m.nom, dose: m.dose, quantite: ordonnanceItems.get(m.id) ?? m.quantite,
+        }));
+      console.log('Ordonnance à créer:', medsPourOrdonnance);
+      showToast('Ordonnance créée avec les médicaments sélectionnés');
+      setMedicaments([]);
+      setRemarqueGenerale('');
+      setNotifier(false);
+      setShowOrdonnanceModal(false);
+      await refreshPrescriptionsEnCours();
+    } catch {
+      setApiError("Erreur lors de la création de l'ordonnance.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function terminerPrescription(id: string) {
+    try {
+      await updateStatutPrescription('medicale', id, 'TERMINEE');
+      await refreshPrescriptionsEnCours();
+    } catch {
+      console.error('Erreur terminaison prescription');
+    }
+  }
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
+      {apiError && (
+        <div style={{ gridColumn: '1 / -1', background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)" }}>
+          {apiError}
+        </div>
+      )}
 
       {/* COLONNE GAUCHE */}
       <div>
-        {/* Formulaire ajout médicament */}
         <div className="card mb12" style={{ padding: 12 }}>
           <div className="mb12" ref={wrapperRef} style={{ position: 'relative' }}>
             <label className="lbl">Médicament <span className="req">*</span></label>
             <div className="iw">
               <input type="text" value={nom} onChange={e => handleSearchChange(e.target.value)}
-                onFocus={() => { if (nom.trim().length > 0) setShowSuggestions(true); }}
+                onFocus={() => { if (nom.trim().length > 1) setShowSuggestions(true); }}
                 placeholder="Rechercher dans le stock pharmacie..." />
               <span className="ico"><span className="ms">search</span></span>
             </div>
             {showSuggestions && suggestions.length > 0 && (
               <ul style={{ position: 'absolute', left: 0, right: 0, top: '100%', marginTop: 2, background: 'var(--card)', border: '1px solid var(--bdr)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 30, maxHeight: 200, overflowY: 'auto', listStyle: 'none', padding: 0, margin: 0 }}>
-                {suggestions.map((s, idx) => (
-                  <li key={idx} onMouseDown={() => selectSuggestion(s)}
-                    style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--bdr)', color: 'var(--txt)' }}
-                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--navy-lt)')}
-                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >{s}</li>
+                {suggestions.map((med) => (
+                  <li key={med.code} onMouseDown={() => selectSuggestion(med)}
+                    style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid var(--bdr)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{med.nom} {med.dose} — {med.conditionnement}</span>
+                    <span style={{
+                      fontSize: 11,
+                      color: med.stockDisponible > 0 ? 'var(--green)' : 'var(--red)',
+                      marginLeft: 8,
+                      fontWeight: 600
+                    }}>
+                      {med.stockDisponible > 0 ? `${med.stockDisponible} dispo` : 'Rupture'}
+                    </span>
+                  </li>
                 ))}
               </ul>
             )}
@@ -117,7 +312,17 @@ export default function MedicaleForm() {
           <div className="mb12"><label className="lbl">Voie d'administration</label><select value={voie} onChange={e => setVoie(e.target.value)}><option value="">Sélectionner</option><option>Orale (per os)</option><option>Intraveineuse (IV)</option><option>Intramusculaire (IM)</option><option>Sous-cutanée (SC)</option><option>Rectale</option><option>Topique / locale</option><option>Inhalation</option><option>Sublinguale</option></select></div>
           <div className="g2 mb12">
             <div><label className="lbl">Fréquence <span className="req">*</span></label><select value={frequence} onChange={e => setFrequence(e.target.value)}><option value="">Sélectionner</option><option>1× par jour</option><option>2× par jour (toutes les 12h)</option><option>3× par jour (toutes les 8h)</option><option>4× par jour (toutes les 6h)</option><option>Toutes les 4h</option><option>En continu (perfusion)</option><option>Si besoin (SOS)</option><option>Dose unique</option></select></div>
-            <div><label className="lbl">Durée <span className="req">*</span></label><input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 7 jours, 1 mois"/></div>
+            <div>
+              <label className="lbl">Durée <span className="req">*</span></label>
+              <div className="g2">
+                <input type="text" value={duree} onChange={e => setDuree(e.target.value)} placeholder="Ex : 7" />
+                <select value={dureeUnite} onChange={e => setDureeUnite(e.target.value)}>
+                  <option value="heures">heures</option>
+                  <option value="jours">jours</option>
+                  <option value="mois">mois</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div className="g2 mb12">
             <div><label className="lbl">Date de début</label><input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)}/></div>
@@ -130,11 +335,7 @@ export default function MedicaleForm() {
           </button>
         </div>
 
-        {/* Liste des médicaments */}
-        <div className="sh mb12">
-          Prescriptions ajoutées{' '}
-          <span style={{background:'var(--navy)',color:'#fff',borderRadius:'10px',padding:'1px 7px',fontSize:'10px',marginLeft:'5px'}}>{medicaments.length}</span>
-        </div>
+        <div className="sh mb12">Prescriptions ajoutées{' '}<span style={{background:'var(--navy)',color:'#fff',borderRadius:'10px',padding:'1px 7px',fontSize:'10px',marginLeft:'5px'}}>{medicaments.length}</span></div>
         <div className="mb12">
           {medicaments.length === 0 ? (
             <div style={{textAlign:'center',padding:'20px',color:'var(--txt3)',fontSize:'13px'}}>Aucune prescription médicamenteuse ajoutée</div>
@@ -155,20 +356,45 @@ export default function MedicaleForm() {
 
       {/* COLONNE DROITE — sticky */}
       <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Prescriptions en cours */}
         <div className="active-rx">
           <div className="active-rx-header"><span className="ms">pending_actions</span><span>Prescriptions en cours</span></div>
-          <div className="active-rx-item"><strong>Furosémide 40 mg</strong><span> — 1 cp matin · Dr RAZAFY</span></div>
-          <div className="active-rx-item"><strong>Metformine 500 mg</strong><span> — 1 cp matin et soir · Dr ANDRIAMANA</span></div>
+          {prescriptionsEnCours.length > 0 ? prescriptionsEnCours.map(p => (
+            <div key={p.id} style={{ position: 'relative' }}>
+              {p.medicaments?.map((med, idx) => (
+                <div key={`${p.id}-${idx}`} className="active-rx-item">
+                  <strong>{med.nom} {med.dose}</strong>
+                  <span> — qté: {med.quantite} · {med.frequence}{med.voie ? ` · ${med.voie}` : ''}{p.prescripteur ? ` · Dr ${p.prescripteur.nom}` : ''}</span>
+                  {p.notifierInfirmier && <span style={{ display: 'block', fontSize: 10, color: 'var(--navy)', marginTop: 2 }}>Infirmier notifié</span>}
+                </div>
+              ))}
+              <button
+                onClick={() => terminerPrescription(p.id)}
+                title="Terminer cette prescription"
+                style={{
+                  position: 'absolute',
+                  right: 4,
+                  top: 4,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--txt3)',
+                  fontSize: 16,
+                  lineHeight: 1,
+                }}
+              >
+                <span className="ms">check_circle</span>
+              </button>
+            </div>
+          )) : (
+            <div className="active-rx-item"><span style={{ color: 'var(--txt3)' }}>Aucune prescription en cours</span></div>
+          )}
         </div>
 
-        {/* Remarques générales */}
         <div className="card" style={{ padding: 12 }}>
           <label className="lbl">Remarques générales</label>
           <textarea rows={3} placeholder="Notes complémentaires..." value={remarqueGenerale} onChange={e => setRemarqueGenerale(e.target.value)}></textarea>
         </div>
 
-        {/* Notifier infirmiers */}
         <div className="card" style={{ padding: 12 }}>
           <div className="togr">
             <div className="togr-l"><p>Notifier les infirmiers</p><span>Envoyer une notification au service</span></div>
@@ -177,27 +403,86 @@ export default function MedicaleForm() {
           {notifier && <div className="hint"><span className="ms" style={{fontSize:13,verticalAlign:'middle',color:'var(--navy)'}}>notifications_active</span> Notification envoyée aux <strong>infirmiers de garde</strong>.</div>}
         </div>
 
-        {/* Bouton valider */}
+        {!canValidate && (
+          <div style={{ fontSize: 11, color: 'var(--red)', textAlign: 'center', marginTop: -8 }}>
+            Ajoutez au moins un médicament.
+          </div>
+        )}
         <button className="bp" onClick={() => setShowOrdModal(true)}
-          style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none" }}>
-          <span className="ms">check_circle</span>Valider
+          style={{ opacity: canValidate && !loading ? 1 : 0.5, pointerEvents: canValidate && !loading ? "auto" : "none" }}>
+          <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider la prescription"}
         </button>
       </div>
 
-      {/* Modal */}
+      {/* Première modale : démander ordonnance */}
       {showOrdModal && (
         <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowOrdModal(false); }}>
           <div className="mbox">
             <h3>Prescription validée</h3>
             <p>Souhaitez-vous créer une ordonnance pour la pharmacie ?</p>
             <div className="mbtns">
-              <button className="bca" onClick={() => { setShowOrdModal(false); setShowValidModal(true); }}>Non, merci</button>
-              <button className="bok" onClick={() => { setShowOrdModal(false); setShowValidModal(true); }}><span className="ms" style={{fontSize:'16px'}}>description</span> Créer une ordonnance</button>
+              <button className="bca" onClick={handleSubmitPrescription} disabled={loading}>Non, merci</button>
+              <button className="bok" onClick={openOrdonnanceModal} disabled={loading}>
+                <span className="ms" style={{fontSize:'16px'}}>description</span> Créer une ordonnance
+              </button>
             </div>
           </div>
         </div>
       )}
-      {showValidModal && <div className="tst on"><span className="ms">check_circle</span>Prescription médicamenteuse validée</div>}
+
+      {/* Deuxième modale : ajuster les quantités pour l'ordonnance */}
+      {showOrdonnanceModal && (
+        <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowOrdonnanceModal(false); }}>
+          <div className="mbox" style={{ maxWidth: 500, width: '90%' }}>
+            <h3>Ordonnance — Ajuster les quantités</h3>
+            <p style={{ fontSize: 12, marginBottom: 16 }}>Modifiez les quantités à délivrer par la pharmacie.</p>
+            <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 16 }}>
+              {medicaments.map(m => {
+                const qte = ordonnanceItems.get(m.id) ?? 0;
+                return (
+                  <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--bdr)' }}>
+                    <div style={{ flex: 1 }}>
+                      <strong style={{ fontSize: 13 }}>{m.nom} {m.dose}</strong>
+                      <span style={{ fontSize: 11, color: 'var(--txt3)', display: 'block' }}>{m.frequence} · {m.duree}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="number"
+                        min={0}
+                        value={qte}
+                        onChange={e => {
+                          const newMap = new Map(ordonnanceItems);
+                          newMap.set(m.id, Math.max(0, parseInt(e.target.value) || 0));
+                          setOrdonnanceItems(newMap);
+                        }}
+                        style={{ width: 70, textAlign: 'center' }}
+                      />
+                      <button
+                        onClick={() => {
+                          const newMap = new Map(ordonnanceItems);
+                          newMap.set(m.id, 0);
+                          setOrdonnanceItems(newMap);
+                        }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--txt3)' }}
+                        title="Retirer de l'ordonnance">
+                        <span className="ms">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mbtns">
+              <button className="bca" onClick={() => setShowOrdonnanceModal(false)}>Annuler</button>
+              <button className="bok" onClick={handleCreateOrdonnance} disabled={loading}>
+                Valider l'ordonnance
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
     </div>
   );
 }

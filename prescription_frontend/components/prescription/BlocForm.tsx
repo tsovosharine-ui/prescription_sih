@@ -1,10 +1,16 @@
 "use client";
 import { useState } from "react";
+import { creerPrescriptionBloc } from "@/lib/api";
 
 type Urgence = "n" | "u" | "tu";
 const urgenceClasses: Record<Urgence, string> = { n: "un", u: "uu", tu: "utu" };
 
-export default function BlocForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function BlocForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence]       = useState<Urgence>("n");
   const [alertes, setAlertes]       = useState("");
   const [renseignements, setRenseignements] = useState("");
@@ -13,17 +19,50 @@ export default function BlocForm() {
   const [risqueHemo, setRisqueHemo] = useState("");
   const [typeChir, setTypeChir]     = useState("");
   const [consignes, setConsignes]   = useState("");
-  const [chirurgien, setChirurgien] = useState("");
+  const [chirurgien, setChirurgien] = useState(prescripteur.nom ? `Dr. ${prescripteur.nom} ${prescripteur.prenom || ''}` : "");
   const [showModal, setShowModal]   = useState(false);
   const [toast, setToast]           = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [apiError, setApiError]     = useState("");
 
   const isFormValid = libelle.trim() !== "" && renseignements.trim() !== "";
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(""), 2800); }
-  function handleSubmit() { setShowModal(false); showToast("Prescription bloc envoyée — Demande de CPA transmise"); }
+
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError("");
+    try {
+      await creerPrescriptionBloc({
+        patientId: patient.id,
+        urgence,
+        alertes,
+        libelle,
+        risqueHemorragique: risqueHemo || undefined,
+        chirurgien,
+        consignes,
+      });
+      showToast("Prescription bloc envoyée — Demande de CPA transmise");
+      // reset
+      setUrgence("n"); setAlertes(""); setRenseignements(""); setLibelle("");
+      setDateIntervention(""); setRisqueHemo(""); setTypeChir(""); setConsignes("");
+      setChirurgien(prescripteur.nom ? `Dr. ${prescripteur.nom} ${prescripteur.prenom || ''}` : "");
+    } catch {
+      setApiError("Erreur lors de l'envoi. Vérifiez la connexion.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div>
+      {apiError && (
+        <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
+          {apiError}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
         {/* COLONNE GAUCHE */}
         <div className="card" style={{ padding: 12 }}>
@@ -89,9 +128,12 @@ export default function BlocForm() {
               <span>La signature numérique sera apposée par le <strong>Professeur anesthésiste lors du CPA</strong>.</span>
             </div>
           </div>
-          <button className="bp" onClick={() => setShowModal(true)}
-            style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">medical_services</span>Valider — Envoyer demande de CPA
+          <button
+            className="bp"
+            onClick={() => setShowModal(true)}
+            style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}
+          >
+            <span className="ms">medical_services</span>{loading ? "Envoi..." : "Valider — Envoyer demande de CPA"}
           </button>
         </div>
       </div>

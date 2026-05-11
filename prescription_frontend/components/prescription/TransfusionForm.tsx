@@ -1,11 +1,17 @@
 "use client";
 import { useState } from 'react';
+import { creerPrescriptionTransfusion } from '@/lib/api';
 
 type Urgence = "n" | "u" | "tu";
 type ProduitSanguin = "sang-total" | "cgr" | "pfc" | "prp";
 const urgenceClasses: Record<Urgence, string> = { n: "un", u: "uu", tu: "utu" };
 
-export default function TransfusionForm() {
+interface Props {
+  patient: { id: string; nom?: string; prenom?: string };
+  prescripteur: { nom?: string; prenom?: string; service?: string };
+}
+
+export default function TransfusionForm({ patient, prescripteur }: Props) {
   const [urgence, setUrgence] = useState<Urgence>("n");
   const [alertes, setAlertes] = useState('');
   const [renseignements, setRenseignements] = useState('');
@@ -20,11 +26,51 @@ export default function TransfusionForm() {
   const [notes, setNotes] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
   const isFormValid = renseignements.trim() && groupage && produit && quantite.trim();
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
 
+  async function handleSubmit() {
+    setShowModal(false);
+    setLoading(true);
+    setApiError('');
+    try {
+      await creerPrescriptionTransfusion({
+        patientId: patient.id,
+        urgence,
+        alertes,
+        renseignements,
+        atcdTransfusion: atcd,
+        incident,
+        groupage,
+        hb: hb ? parseFloat(hb) : undefined,
+        produit,
+        plaquettes: produit === 'prp' ? plaquettes : undefined,
+        quantite,
+        datePrevue: datePrevue || undefined,
+        notes,
+      });
+      showToast('Prescription transfusion envoyée au dépôt de sang');
+      // reset
+      setUrgence("n"); setAlertes(''); setRenseignements(''); setAtcd(false); setIncident('');
+      setGroupage(''); setHb(''); setProduit('cgr'); setPlaquettes(''); setQuantite('');
+      setDatePrevue(''); setNotes('');
+    } catch {
+      setApiError("Erreur lors de l'envoi de la prescription transfusion.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div>
+      {apiError && (
+        <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
+          {apiError}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
         {/* COLONNE GAUCHE */}
         <div className="card" style={{ padding: 12 }}>
@@ -54,14 +100,14 @@ export default function TransfusionForm() {
             </div>
             {atcd && <div style={{ marginTop: 10 }}><label className="lbl">Incident transfusionnel <span className="req">*</span></label><textarea rows={2} placeholder="Décrire l'incident..." value={incident} onChange={e => setIncident(e.target.value)} /></div>}
           </div>
-          <button className="bp" onClick={() => setShowModal(true)} style={{ opacity: isFormValid ? 1 : 0.5, pointerEvents: isFormValid ? "auto" : "none", marginTop: 0 }}>
-            <span className="ms">check_circle</span>Valider — Envoyer au dépôt de sang
+          <button className="bp" onClick={() => setShowModal(true)} style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? "auto" : "none", marginTop: 0 }}>
+            <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider — Envoyer au dépôt de sang"}
           </button>
         </div>
       </div>
 
       <p className="hint" style={{ textAlign: 'center', marginTop: 6 }}>La prescription sera transmise automatiquement au service dépôt de sang après validation</p>
-      {showModal && <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}><div className="mbox"><h3>Valider — Transfusion Sanguine</h3><p>La prescription sera transmise au dépôt de sang.</p><div className="mbtns"><button className="bca" onClick={() => setShowModal(false)}>Annuler</button><button className="bok" onClick={() => { setShowModal(false); showToast('Prescription transmise au dépôt de sang'); }}>Confirmer</button></div></div></div>}
+      {showModal && <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}><div className="mbox"><h3>Valider — Transfusion Sanguine</h3><p>La prescription sera transmise au dépôt de sang.</p><div className="mbtns"><button className="bca" onClick={() => setShowModal(false)}>Annuler</button><button className="bok" onClick={handleSubmit}>Confirmer</button></div></div></div>}
       {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
     </div>
   );

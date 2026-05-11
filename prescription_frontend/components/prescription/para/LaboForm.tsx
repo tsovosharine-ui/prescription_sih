@@ -95,8 +95,6 @@ export default function LaboForm({ patient, prescripteur }: Props) {
               )) : <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>{cat.analyses!.map(a => <label key={a} className="cr"><span style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--txt2)' }}>{a}</span><input type="checkbox" checked={selected.includes(a)} onChange={() => toggle(a)} style={{ accentColor: 'var(--navy)', width: 16, height: 16, flexShrink: 0 }} /></label>)}</div>}
             </div>
           ))}
-
-          <div className="card mb12"><label className="lbl">Notes complémentaires</label><textarea rows={3} placeholder="Ex : patient à jeun, dernier repas à 8h..." value={notes} onChange={e => setNotes(e.target.value)} /></div>
         </div>
 
         {/* COLONNE DROITE — sticky */}
@@ -136,6 +134,12 @@ export default function LaboForm({ patient, prescripteur }: Props) {
               </div>
             </div>
           )}
+
+          {/* Notes complémentaires (déplacé à droite) */}
+          <div className="card" style={{ padding: 12 }}>
+            <label className="lbl">Notes complémentaires</label>
+            <textarea rows={3} placeholder="Ex : patient à jeun, dernier repas à 8h..." value={notes} onChange={e => setNotes(e.target.value)} />
+          </div>
 
           <button className="bp" onClick={() => setShowModal(true)}
             style={{ opacity: isFormValid && !loading ? 1 : 0.5, pointerEvents: isFormValid && !loading ? 'auto' : 'none', marginTop: 0 }}>
