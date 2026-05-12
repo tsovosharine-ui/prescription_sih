@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -19,28 +19,24 @@ export class SurveillanceService {
 
   async findByPatient(patientId: string) {
     return this.prisma.prescriptionSurveillance.findMany({
-      where: { patientId, statut: 'ACTIVE' },
-      include: {
-        parametres: {
-          select: {
-            parametre: true,
-            frequence: true,
-            duree: true,
-            seuil: true,
-          },
-        },
-        prescripteur: {
-          select: { nom: true },
-        },
-      },
+      where: { patientId },
+      include: { parametres: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string) {
-    return this.prisma.prescriptionSurveillance.findUnique({ where: { id }, include: { parametres: true } });
+    const p = await this.prisma.prescriptionSurveillance.findUnique({
+      where: { id },
+      include: { parametres: true },
+    });
+    if (!p) throw new NotFoundException('Prescription introuvable');
+    return p;
   }
 
   async updateStatut(id: string, statut: string) {
-    return this.prisma.prescriptionSurveillance.update({ where: { id }, data: { statut } });
+    return this.prisma.prescriptionSurveillance.update({
+      where: { id }, data: { statut },
+    });
   }
 }
