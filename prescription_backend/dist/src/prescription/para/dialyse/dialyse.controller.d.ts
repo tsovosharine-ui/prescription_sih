@@ -7,31 +7,26 @@ export declare class DialyseController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
-        patientId: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         renseignements: string;
         typeDialyse: string;
     }>;
-    findByPatient(patientId: string): Promise<({
-        prescripteur: {
-            nom: string;
-            prenoms: string;
-        };
-    } & {
+    findByPatient(patientId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
-        patientId: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         renseignements: string;
         typeDialyse: string;
-    })[]>;
+    }[]>;
 }

@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
-import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter';
-import { NotificationModule } from './notification/notification.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { PatientModule } from './patient/patient.module';
+import { NotificationModule } from './notification/notification.module';
 import { MedicaleModule } from './prescription/medicale/medicale.module';
 import { NonMedicaleModule } from './prescription/non-medicale/non-medicale.module';
 import { SurveillanceModule } from './prescription/surveillance/surveillance.module';
@@ -20,10 +18,10 @@ import { EndoscopieModule } from './prescription/para/endoscopie/endoscopie.modu
 
 @Module({
   imports: [
-    NotificationModule,
     PrismaModule,
     AuthModule,
     PatientModule,
+    NotificationModule,
     MedicaleModule,
     NonMedicaleModule,
     SurveillanceModule,
@@ -36,12 +34,6 @@ import { EndoscopieModule } from './prescription/para/endoscopie/endoscopie.modu
     KineModule,
     DialyseModule,
     EndoscopieModule,
-  ],
-  providers: [
-    {
-      provide: APP_FILTER,
-      useClass: PrismaExceptionFilter,
-    },
   ],
 })
 export class AppModule {}

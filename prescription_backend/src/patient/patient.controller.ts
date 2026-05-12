@@ -1,7 +1,9 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('patients')
 export class PatientController {

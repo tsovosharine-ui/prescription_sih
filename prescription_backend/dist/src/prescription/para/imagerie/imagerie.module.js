@@ -10,10 +10,15 @@ exports.ImagerieModule = void 0;
 const common_1 = require("@nestjs/common");
 const imagerie_service_1 = require("./imagerie.service");
 const imagerie_controller_1 = require("./imagerie.controller");
+const notification_module_1 = require("../../../notification/notification.module");
 let ImagerieModule = class ImagerieModule {
 };
 exports.ImagerieModule = ImagerieModule;
 exports.ImagerieModule = ImagerieModule = __decorate([
-    (0, common_1.Module)({ providers: [imagerie_service_1.ImagerieService], controllers: [imagerie_controller_1.ImagerieController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [imagerie_service_1.ImagerieService],
+        controllers: [imagerie_controller_1.ImagerieController],
+    })
 ], ImagerieModule);
 //# sourceMappingURL=imagerie.module.js.map

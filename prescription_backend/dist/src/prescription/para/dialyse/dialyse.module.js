@@ -10,10 +10,15 @@ exports.DialyseModule = void 0;
 const common_1 = require("@nestjs/common");
 const dialyse_service_1 = require("./dialyse.service");
 const dialyse_controller_1 = require("./dialyse.controller");
+const notification_module_1 = require("../../../notification/notification.module");
 let DialyseModule = class DialyseModule {
 };
 exports.DialyseModule = DialyseModule;
 exports.DialyseModule = DialyseModule = __decorate([
-    (0, common_1.Module)({ providers: [dialyse_service_1.DialyseService], controllers: [dialyse_controller_1.DialyseController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [dialyse_service_1.DialyseService],
+        controllers: [dialyse_controller_1.DialyseController],
+    })
 ], DialyseModule);
 //# sourceMappingURL=dialyse.module.js.map

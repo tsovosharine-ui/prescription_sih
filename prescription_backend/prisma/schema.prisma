@@ -349,3 +349,22 @@ model NotificationInfirmier {
   prescriptionNonMedicale PrescriptionNonMedicale? @relation(fields: [prescriptionNonMedicaleId], references: [id])
   prescriptionSurveillance PrescriptionSurveillance? @relation(fields: [prescriptionSurveillanceId], references: [id])
 }
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+
+model Notification {
+  id            String    @id @default(uuid())
+  type          String
+  destinataire  String
+  expediteurId  String
+  patientId     String
+  referenceId   String
+  referenceType String
+  titre         String
+  contenu       Json
+  statut        String    @default("EN_ATTENTE")
+  tentatives    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  luAt          DateTime?
+}

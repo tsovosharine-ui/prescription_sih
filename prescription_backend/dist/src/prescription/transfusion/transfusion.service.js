@@ -12,32 +12,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransfusionService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const prescription_notifier_service_1 = require("../../notification/prescription-notifier.service");
 let TransfusionService = class TransfusionService {
     prisma;
-    constructor(prisma) {
+    notifier;
+    constructor(prisma, notifier) {
         this.prisma = prisma;
+        this.notifier = notifier;
     }
     async create(prescripteurId, dto) {
-        return this.prisma.prescriptionTransfusion.create({
+        const prescription = await this.prisma.prescriptionTransfusion.create({
             data: {
                 ...dto,
                 prescripteurId,
                 datePrevue: dto.datePrevue ? new Date(dto.datePrevue) : undefined,
             },
         });
+        await this.notifier.notify({
+            type: 'depot-sang',
+            expediteurId: prescripteurId,
+            patientId: prescription.patientId,
+            referenceId: prescription.id,
+            referenceType: 'PrescriptionTransfusion',
+            urgence: prescription.urgence,
+            extra: { groupage: prescription.groupage, produit: prescription.produit },
+        });
+        return prescription;
     }
     async findByPatient(patientId) {
         return this.prisma.prescriptionTransfusion.findMany({
             where: { patientId },
-            include: { prescripteur: { select: { nom: true, prenoms: true } } },
             orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
-        const p = await this.prisma.prescriptionTransfusion.findUnique({
-            where: { id },
-            include: { prescripteur: { select: { nom: true, prenoms: true } }, patient: true },
-        });
+        const p = await this.prisma.prescriptionTransfusion.findUnique({ where: { id } });
         if (!p)
             throw new common_1.NotFoundException('Prescription introuvable');
         return p;
@@ -49,6 +58,7 @@ let TransfusionService = class TransfusionService {
 exports.TransfusionService = TransfusionService;
 exports.TransfusionService = TransfusionService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        prescription_notifier_service_1.PrescriptionNotifierService])
 ], TransfusionService);
 //# sourceMappingURL=transfusion.service.js.map

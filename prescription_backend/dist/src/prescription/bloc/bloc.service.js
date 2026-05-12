@@ -12,32 +12,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BlocService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const prescription_notifier_service_1 = require("../../notification/prescription-notifier.service");
 let BlocService = class BlocService {
     prisma;
-    constructor(prisma) {
+    notifier;
+    constructor(prisma, notifier) {
         this.prisma = prisma;
+        this.notifier = notifier;
     }
     async create(prescripteurId, dto) {
-        return this.prisma.prescriptionBloc.create({
+        const prescription = await this.prisma.prescriptionBloc.create({
             data: {
                 ...dto,
                 prescripteurId,
                 dateIntervention: dto.dateIntervention ? new Date(dto.dateIntervention) : undefined,
             },
         });
+        await this.notifier.notify({
+            type: 'bloc',
+            expediteurId: prescripteurId,
+            patientId: prescription.patientId,
+            referenceId: prescription.id,
+            referenceType: 'PrescriptionBloc',
+            urgence: prescription.urgence,
+            extra: { libelle: prescription.libelle },
+        });
+        return prescription;
     }
     async findByPatient(patientId) {
         return this.prisma.prescriptionBloc.findMany({
             where: { patientId },
-            include: { prescripteur: { select: { nom: true, prenoms: true } } },
             orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
-        const p = await this.prisma.prescriptionBloc.findUnique({
-            where: { id },
-            include: { prescripteur: { select: { nom: true, prenoms: true } }, patient: true },
-        });
+        const p = await this.prisma.prescriptionBloc.findUnique({ where: { id } });
         if (!p)
             throw new common_1.NotFoundException('Prescription introuvable');
         return p;
@@ -49,6 +58,7 @@ let BlocService = class BlocService {
 exports.BlocService = BlocService;
 exports.BlocService = BlocService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        prescription_notifier_service_1.PrescriptionNotifierService])
 ], BlocService);
 //# sourceMappingURL=bloc.service.js.map

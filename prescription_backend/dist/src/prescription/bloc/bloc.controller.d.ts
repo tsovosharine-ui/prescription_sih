@@ -7,8 +7,8 @@ export declare class BlocController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;

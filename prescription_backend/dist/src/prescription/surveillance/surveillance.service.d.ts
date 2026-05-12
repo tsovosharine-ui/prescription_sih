@@ -17,9 +17,9 @@ export declare class SurveillanceService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
         notes: string | null;
     }>;
@@ -37,9 +37,9 @@ export declare class SurveillanceService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
         notes: string | null;
     })[]>;
@@ -58,9 +58,9 @@ export declare class SurveillanceService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
         notes: string | null;
     }) | null>;
@@ -68,9 +68,9 @@ export declare class SurveillanceService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
         notes: string | null;
     }>;

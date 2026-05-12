@@ -1,62 +1,40 @@
 import { PrismaService } from '../../../prisma/prisma.service';
+import { PrescriptionNotifierService } from '../../../notification/prescription-notifier.service';
 export declare class AnapathService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private notifier;
+    constructor(prisma: PrismaService, notifier: PrescriptionNotifierService);
     create(prescripteurId: string, dto: any): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         typeExamen: string;
     }>;
-    findByPatient(patientId: string): Promise<({
-        prescripteur: {
-            nom: string;
-            prenoms: string;
-        };
-    } & {
+    findByPatient(patientId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         typeExamen: string;
-    })[]>;
+    }[]>;
     findOne(id: string): Promise<{
-        patient: {
-            id: string;
-            nom: string;
-            telephone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-            idPermanent: string;
-            prenom: string;
-            dateNaissance: Date | null;
-            sexe: string | null;
-            adresse: string | null;
-            allergies: string[];
-            categorie: string | null;
-        };
-        prescripteur: {
-            nom: string;
-            prenoms: string;
-        };
-    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
@@ -66,9 +44,9 @@ export declare class AnapathService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;

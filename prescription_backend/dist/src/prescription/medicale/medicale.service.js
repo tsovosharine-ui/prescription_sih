@@ -12,10 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MedicaleService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
+const prescription_notifier_service_1 = require("../../notification/prescription-notifier.service");
 let MedicaleService = class MedicaleService {
     prisma;
-    constructor(prisma) {
+    notifier;
+    constructor(prisma, notifier) {
         this.prisma = prisma;
+        this.notifier = notifier;
     }
     async create(prescripteurId, dto) {
         const { medicaments, ...rest } = dto;
@@ -23,34 +26,62 @@ let MedicaleService = class MedicaleService {
             data: {
                 ...rest,
                 prescripteurId,
-                medicaments: { create: medicaments },
+                medicaments: {
+                    create: medicaments.map((m) => ({
+                        ...m,
+                        dateDebut: m.dateDebut ? new Date(m.dateDebut) : undefined,
+                        quantite: m.quantite || 1,
+                    })),
+                },
             },
             include: { medicaments: true, ordonnance: true },
         });
-        console.log('Prescription créée:', prescription.id);
+        if (prescription.notifierInfirmier) {
+            await this.notifier.notify({
+                type: 'infirmier',
+                expediteurId: prescripteurId,
+                patientId: prescription.patientId,
+                referenceId: prescription.id,
+                referenceType: 'PrescriptionMedicale',
+                extra: { medicaments: prescription.medicaments.map(m => m.nom) },
+            });
+        }
         return prescription;
     }
     async findByPatient(patientId) {
         return this.prisma.prescriptionMedicale.findMany({
-            where: { patientId, statut: 'ACTIVE' },
-            include: { medicaments: true, prescripteur: true },
+            where: { patientId },
+            include: { medicaments: true, ordonnance: true },
+            orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
-        return this.prisma.prescriptionMedicale.findUnique({ where: { id }, include: { medicaments: true } });
+        const p = await this.prisma.prescriptionMedicale.findUnique({
+            where: { id },
+            include: { medicaments: true, ordonnance: true },
+        });
+        if (!p)
+            throw new common_1.NotFoundException('Prescription introuvable');
+        return p;
     }
     async createOrdonnance(prescriptionId, medicaments) {
-        return this.prisma.ordonnance.create({
-            data: { prescriptionId, medicaments },
+        return this.prisma.ordonnance.upsert({
+            where: { prescriptionId },
+            create: { prescriptionId, medicaments },
+            update: { medicaments },
         });
     }
     async updateStatut(id, statut) {
-        return this.prisma.prescriptionMedicale.update({ where: { id }, data: { statut } });
+        return this.prisma.prescriptionMedicale.update({
+            where: { id },
+            data: { statut },
+        });
     }
 };
 exports.MedicaleService = MedicaleService;
 exports.MedicaleService = MedicaleService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        prescription_notifier_service_1.PrescriptionNotifierService])
 ], MedicaleService);
 //# sourceMappingURL=medicale.service.js.map

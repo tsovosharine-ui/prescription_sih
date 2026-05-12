@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ImagerieController = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const imagerie_service_1 = require("./imagerie.service");
 const jwt_auth_guard_1 = require("../../../auth/jwt-auth.guard");
@@ -46,6 +47,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ImagerieController.prototype, "findByPatient", null);
 exports.ImagerieController = ImagerieController = __decorate([
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('prescriptions/imagerie'),
     __metadata("design:paramtypes", [imagerie_service_1.ImagerieService])

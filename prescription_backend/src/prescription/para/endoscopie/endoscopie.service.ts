@@ -1,27 +1,40 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { PrescriptionNotifierService } from '../../../notification/prescription-notifier.service';
 
 @Injectable()
 export class EndoscopieService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifier: PrescriptionNotifierService,
+  ) {}
 
   async create(prescripteurId: string, dto: any) {
-    return this.prisma.prescriptionEndoscopie.create({ data: { ...dto, prescripteurId } });
+    const prescription = await this.prisma.prescriptionEndoscopie.create({
+      data: { ...dto, prescripteurId },
+    });
+
+    await this.notifier.notify({
+      type: 'endoscopie',
+      expediteurId: prescripteurId,
+      patientId: prescription.patientId,
+      referenceId: prescription.id,
+      referenceType: 'prescriptionEndoscopie',
+      urgence: prescription.urgence,
+    });
+
+    return prescription;
   }
 
   async findByPatient(patientId: string) {
     return this.prisma.prescriptionEndoscopie.findMany({
       where: { patientId },
-      include: { prescripteur: { select: { nom: true, prenoms: true } } },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string) {
-    const p = await this.prisma.prescriptionEndoscopie.findUnique({
-      where: { id },
-      include: { prescripteur: { select: { nom: true, prenoms: true } }, patient: true },
-    });
+    const p = await this.prisma.prescriptionEndoscopie.findUnique({ where: { id } });
     if (!p) throw new NotFoundException('Prescription introuvable');
     return p;
   }

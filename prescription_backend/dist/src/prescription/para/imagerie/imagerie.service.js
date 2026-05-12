@@ -12,26 +12,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ImagerieService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../prisma/prisma.service");
+const prescription_notifier_service_1 = require("../../../notification/prescription-notifier.service");
 let ImagerieService = class ImagerieService {
     prisma;
-    constructor(prisma) {
+    notifier;
+    constructor(prisma, notifier) {
         this.prisma = prisma;
+        this.notifier = notifier;
     }
     async create(prescripteurId, dto) {
-        return this.prisma.prescriptionImagerie.create({ data: { ...dto, prescripteurId } });
+        const prescription = await this.prisma.prescriptionImagerie.create({
+            data: { ...dto, prescripteurId },
+        });
+        await this.notifier.notify({
+            type: 'imagerie',
+            expediteurId: prescripteurId,
+            patientId: prescription.patientId,
+            referenceId: prescription.id,
+            referenceType: 'prescriptionImagerie',
+            urgence: prescription.urgence,
+        });
+        return prescription;
     }
     async findByPatient(patientId) {
         return this.prisma.prescriptionImagerie.findMany({
             where: { patientId },
-            include: { prescripteur: { select: { nom: true, prenoms: true } } },
             orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
-        const p = await this.prisma.prescriptionImagerie.findUnique({
-            where: { id },
-            include: { prescripteur: { select: { nom: true, prenoms: true } }, patient: true },
-        });
+        const p = await this.prisma.prescriptionImagerie.findUnique({ where: { id } });
         if (!p)
             throw new common_1.NotFoundException('Prescription introuvable');
         return p;
@@ -43,6 +53,7 @@ let ImagerieService = class ImagerieService {
 exports.ImagerieService = ImagerieService;
 exports.ImagerieService = ImagerieService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        prescription_notifier_service_1.PrescriptionNotifierService])
 ], ImagerieService);
 //# sourceMappingURL=imagerie.service.js.map

@@ -29,13 +29,19 @@ export declare class MedicaleController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }>;
     findByPatient(patientId: string): Promise<({
+        ordonnance: {
+            id: string;
+            createdAt: Date;
+            medicaments: import("@prisma/client/runtime/library").JsonValue;
+            prescriptionId: string;
+        } | null;
         medicaments: {
             id: string;
             nom: string;
@@ -51,31 +57,23 @@ export declare class MedicaleController {
             instructions: string | null;
             prescriptionId: string;
         }[];
-        prescripteur: {
-            id: string;
-            email: string;
-            nom: string;
-            prenoms: string;
-            password: string;
-            poste: string;
-            matricule: string | null;
-            numeroOrdre: string | null;
-            ordre: string | null;
-            telephone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     })[]>;
-    findOne(id: string): Promise<({
+    findOne(id: string): Promise<{
+        ordonnance: {
+            id: string;
+            createdAt: Date;
+            medicaments: import("@prisma/client/runtime/library").JsonValue;
+            prescriptionId: string;
+        } | null;
         medicaments: {
             id: string;
             nom: string;
@@ -95,12 +93,12 @@ export declare class MedicaleController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
-    }) | null>;
+    }>;
     createOrdonnance(id: string, dto: {
         medicaments: any[];
     }): Promise<{
@@ -115,10 +113,10 @@ export declare class MedicaleController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }>;
 }

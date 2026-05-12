@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { openSummaryWindow } from '@/lib/printPrescription';
-import { creerPrescriptionSurveillance, getPrescriptionsPatient, notifierInfirmierSurveillance, updateStatutPrescription } from '@/lib/api';
+import { creerPrescriptionSurveillance, getPrescriptionsPatient, updateStatutPrescription } from '@/lib/api';
 
 interface SvItem {
   id: string; parametre: string; parametreLabel: string; customNom: string; customDesc: string;
@@ -85,7 +85,7 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
     async function fetchSurveillances() {
       try {
         const data = await getPrescriptionsPatient('surveillance', patient.id);
-        setPrescriptionsEnCours(data);
+        setPrescriptionsEnCours(data.filter((p: any) => p.statut === 'ACTIVE'));
       } catch {}
     }
     fetchSurveillances();
@@ -120,7 +120,7 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
   async function refreshPrescriptions() {
     try {
       const data = await getPrescriptionsPatient('surveillance', patient.id);
-      setPrescriptionsEnCours(data);
+      setPrescriptionsEnCours(data.filter((p: any) => p.statut === 'ACTIVE'));
     } catch {}
   }
 
@@ -159,7 +159,6 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
         parametres: items.map(({ id, parametreLabel, customNom, customDesc, customUnite, customTarget, taille, sngTypes, sngRemarques, drainLocalisation, drainTypes, ...rest }) => rest),
       });
       if (notifOn && result?.id) {
-        notifierInfirmierSurveillance(result.id).catch(e => console.error('Erreur notification surveillance', e));
       }
       openSummaryWindow('Prescription de surveillance', buildSurvSummary(items, notifOn));
       showToast('Surveillance validée');

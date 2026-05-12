@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap");
+@font-face { font-family: "DM Sans"; font-style: normal; font-weight: 100 900; src: url("/fonts/DM-Sans.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Manrope"; font-style: normal; font-weight: 700 800; src: url("/fonts/Manrope.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Material Symbols Outlined"; font-style: normal; font-weight: 400; src: url("/fonts/material-symbols.woff2") format("woff2"); font-display: block; }
 
 :root{
@@ -241,3 +242,50 @@ textarea{resize:none}
 
 /* OVERRIDE LAYOUT */
 #__next, main { height: 100%; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --h: 52px; }
+
+  /* Grilles 2 colonnes → 1 colonne */
+  .g2 { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr; }
+
+  /* Colonne droite sticky → normale */
+  [style*="grid-template-columns: 1fr 300px"],
+  [style*="gridTemplateColumns: '1fr 300px'"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Banner patient */
+  .pbanner { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .pb-allergy { margin-left: 0; }
+
+  /* Navigation onglets */
+  .sb { width: 100%; border-right: none; border-bottom: 1px solid var(--bdr); flex-direction: row; overflow-x: auto; overflow-y: hidden; height: auto; flex-shrink: 0; }
+  .sb-btn { white-space: nowrap; }
+
+  /* Main */
+  .main { padding: 12px 10px 80px; }
+  .mi { max-width: 100%; }
+
+  /* Card padding réduit */
+  .card { padding: 12px; border-radius: 10px; }
+
+  /* Bouton valider */
+  .bp { padding: 13px 16px; font-size: 14px; }
+
+  /* Toast en bas */
+  .tst { bottom: 20px; font-size: 11px; }
+
+  /* Modal */
+  .mbox { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+  .g3 { grid-template-columns: 1fr; }
+  .pb-id { font-size: 10px; padding: 3px 8px; }
+  .pb-name { font-size: 13px; }
+  .active-rx { display: none; }
+}

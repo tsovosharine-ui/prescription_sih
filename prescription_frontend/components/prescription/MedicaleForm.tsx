@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { openSummaryWindow } from '@/lib/printPrescription';
-import { creerPrescriptionMedicale, getPrescriptionsPatient, notifierInfirmierMedicale, updateStatutPrescription } from '@/lib/api';
+import { creerPrescriptionMedicale, getPrescriptionsPatient, updateStatutPrescription } from '@/lib/api';
 
 interface Medicament {
   id: string;
@@ -104,6 +104,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
   function filterExpired(prescriptions: PrescriptionEnCours[]): PrescriptionEnCours[] {
     const now = Date.now();
     return prescriptions.filter(p => {
+      if (p.statut !== 'ACTIVE') return false;
       return p.medicaments?.some(med => {
         if (!med.dateDebut || !med.duree) return true;
         const start = new Date(med.dateDebut).getTime();
@@ -218,12 +219,12 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
           ...rest,
           quantite: rest.quantite,
           duree,
-          dateDebut: dateDebut ? new Date(dateDebut) : undefined,
+          dateDebut: dateDebut || undefined,
           heureDebut: heureDebut || undefined,
         })),
       });
       if (notifier && result?.id) {
-        notifierInfirmierMedicale(result.id).catch(e => console.error('Erreur notification', e));
+
       }
       openSummaryWindow('Prescription médicamenteuse', buildMedicaleSummary(medicaments, remarqueGenerale, notifier));
       showToast('Prescription médicamenteuse validée');
@@ -260,12 +261,12 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
           ...rest,
           quantite: rest.quantite,
           duree,
-          dateDebut: dateDebut ? new Date(dateDebut) : undefined,
+          dateDebut: dateDebut || undefined,
           heureDebut: heureDebut || undefined,
         })),
       });
       if (notifier && result?.id) {
-        notifierInfirmierMedicale(result.id).catch(e => console.error('Erreur notification', e));
+
       }
       openSummaryWindow('Ordonnance transmise à la pharmacie', buildMedicaleSummary(medicaments, remarqueGenerale, notifier));
       const medsPourOrdonnance = medicaments

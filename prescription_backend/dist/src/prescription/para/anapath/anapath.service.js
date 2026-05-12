@@ -12,26 +12,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnapathService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../prisma/prisma.service");
+const prescription_notifier_service_1 = require("../../../notification/prescription-notifier.service");
 let AnapathService = class AnapathService {
     prisma;
-    constructor(prisma) {
+    notifier;
+    constructor(prisma, notifier) {
         this.prisma = prisma;
+        this.notifier = notifier;
     }
     async create(prescripteurId, dto) {
-        return this.prisma.prescriptionAnapath.create({ data: { ...dto, prescripteurId } });
+        const prescription = await this.prisma.prescriptionAnapath.create({
+            data: { ...dto, prescripteurId },
+        });
+        await this.notifier.notify({
+            type: 'anapath',
+            expediteurId: prescripteurId,
+            patientId: prescription.patientId,
+            referenceId: prescription.id,
+            referenceType: 'prescriptionAnapath',
+            urgence: prescription.urgence,
+        });
+        return prescription;
     }
     async findByPatient(patientId) {
         return this.prisma.prescriptionAnapath.findMany({
             where: { patientId },
-            include: { prescripteur: { select: { nom: true, prenoms: true } } },
             orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
-        const p = await this.prisma.prescriptionAnapath.findUnique({
-            where: { id },
-            include: { prescripteur: { select: { nom: true, prenoms: true } }, patient: true },
-        });
+        const p = await this.prisma.prescriptionAnapath.findUnique({ where: { id } });
         if (!p)
             throw new common_1.NotFoundException('Prescription introuvable');
         return p;
@@ -43,6 +53,7 @@ let AnapathService = class AnapathService {
 exports.AnapathService = AnapathService;
 exports.AnapathService = AnapathService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        prescription_notifier_service_1.PrescriptionNotifierService])
 ], AnapathService);
 //# sourceMappingURL=anapath.service.js.map

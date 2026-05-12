@@ -1,48 +1,62 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);
-
   constructor(private prisma: PrismaService) {}
 
-  async createForMedicale(prescriptionMedicaleId: string) {
-    try {
-      const result = await this.prisma.notificationInfirmier.create({
-        data: { prescriptionMedicaleId },
-      });
-      this.logger.log(`Notification créée pour prescription médicale : ${result.id}`);
-      return result;
-    } catch (error) {
-      this.logger.error('Erreur création notification médicale', error);
-      throw error;
-    }
+  async create(dto: {
+    type: string;
+    destinataire: string;
+    expediteurId: string;
+    patientId: string;
+    referenceId: string;
+    referenceType: string;
+    titre: string;
+    contenu: any;
+  }) {
+    return this.prisma.notification.create({ data: dto });
   }
 
-  async createForNonMedicale(prescriptionNonMedicaleId: string) {
-    try {
-      const result = await this.prisma.notificationInfirmier.create({
-        data: { prescriptionNonMedicaleId },
-      });
-      this.logger.log(`Notification créée pour prescription non médicale : ${result.id}`);
-      return result;
-    } catch (error) {
-      this.logger.error('Erreur création notification non médicale', error);
-      throw error;
-    }
+  // Récupérer toutes les notifications EN_ATTENTE pour un user ou service
+  async getPending(userId: string, service?: string) {
+    return this.prisma.notification.findMany({
+      where: {
+        statut: 'EN_ATTENTE',
+        OR: [
+          { destinataire: userId },
+          ...(service ? [{ destinataire: service }] : []),
+        ],
+      },
+      orderBy: { createdAt: 'asc' },
+    });
   }
 
-  async createForSurveillance(prescriptionSurveillanceId: string) {
-    try {
-      const result = await this.prisma.notificationInfirmier.create({
-        data: { prescriptionSurveillanceId },
-      });
-      this.logger.log(`Notification créée pour surveillance : ${result.id}`);
-      return result;
-    } catch (error) {
-      this.logger.error('Erreur création notification surveillance', error);
-      throw error;
-    }
+  async markAsRead(id: string) {
+    return this.prisma.notification.update({
+      where: { id },
+      data: { statut: 'LU', luAt: new Date() },
+    });
+  }
+
+  async markAsSent(id: string) {
+    return this.prisma.notification.update({
+      where: { id },
+      data: { statut: 'ENVOYE', tentatives: { increment: 1 } },
+    });
+  }
+
+  async getByDestinataire(destinataire: string, limit = 50) {
+    return this.prisma.notification.findMany({
+      where: { destinataire },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  async getUnreadCount(destinataire: string) {
+    return this.prisma.notification.count({
+      where: { destinataire, statut: { in: ['EN_ATTENTE', 'ENVOYE'] } },
+    });
   }
 }

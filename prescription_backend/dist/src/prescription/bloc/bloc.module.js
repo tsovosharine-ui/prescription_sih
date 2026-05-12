@@ -10,10 +10,15 @@ exports.BlocModule = void 0;
 const common_1 = require("@nestjs/common");
 const bloc_service_1 = require("./bloc.service");
 const bloc_controller_1 = require("./bloc.controller");
+const notification_module_1 = require("../../notification/notification.module");
 let BlocModule = class BlocModule {
 };
 exports.BlocModule = BlocModule;
 exports.BlocModule = BlocModule = __decorate([
-    (0, common_1.Module)({ providers: [bloc_service_1.BlocService], controllers: [bloc_controller_1.BlocController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [bloc_service_1.BlocService],
+        controllers: [bloc_controller_1.BlocController],
+    })
 ], BlocModule);
 //# sourceMappingURL=bloc.module.js.map

@@ -7,8 +7,8 @@ export declare class ImagerieController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
@@ -17,17 +17,12 @@ export declare class ImagerieController {
         statutPatient: string | null;
         examens: import("@prisma/client/runtime/library").JsonValue;
     }>;
-    findByPatient(patientId: string): Promise<({
-        prescripteur: {
-            nom: string;
-            prenoms: string;
-        };
-    } & {
+    findByPatient(patientId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
@@ -35,5 +30,5 @@ export declare class ImagerieController {
         renseignements: string;
         statutPatient: string | null;
         examens: import("@prisma/client/runtime/library").JsonValue;
-    })[]>;
+    }[]>;
 }

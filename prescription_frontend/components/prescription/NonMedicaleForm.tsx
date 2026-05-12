@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { openSummaryWindow } from '@/lib/printPrescription';
-import { creerPrescriptionNonMedicale, getPrescriptionsPatient, notifierInfirmierNonMedicale, updateStatutPrescription } from '@/lib/api';
+import { creerPrescriptionNonMedicale, getPrescriptionsPatient, updateStatutPrescription } from '@/lib/api';
 
 interface NMItem {
   id: string;
@@ -80,6 +80,7 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
   function filterExpired(prescriptions: PrescriptionNonMedEnCours[]): PrescriptionNonMedEnCours[] {
     const now = Date.now();
     return prescriptions.filter(p => {
+      if ((p as any).statut !== 'ACTIVE') return false;
       return p.items?.some(item => {
         if (!item.dateDebut || !item.duree) return true;
         const start = new Date(item.dateDebut).getTime();
@@ -166,7 +167,6 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
         })),
       });
       if (notifOn && result?.id) {
-        notifierInfirmierNonMedicale(result.id).catch(e => console.error('Erreur notification non medicale', e));
       }
       openSummaryWindow('Prescription non médicamenteuse', buildNMSummary(items, notifOn));
       showToast('Prescription non médicamenteuse validée');

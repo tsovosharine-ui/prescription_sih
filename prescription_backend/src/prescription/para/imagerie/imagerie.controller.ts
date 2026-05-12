@@ -1,8 +1,10 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Post, Get, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { ImagerieService } from './imagerie.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateImagerieDto } from './dto/create-imagerie.dto';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/imagerie')
 export class ImagerieController {

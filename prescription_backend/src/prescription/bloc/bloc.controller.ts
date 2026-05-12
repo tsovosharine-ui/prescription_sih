@@ -1,8 +1,10 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { BlocService } from './bloc.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { CreateBlocDto } from './dto/create-bloc.dto';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/bloc')
 export class BlocController {

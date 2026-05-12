@@ -10,10 +10,15 @@ exports.LaboModule = void 0;
 const common_1 = require("@nestjs/common");
 const labo_service_1 = require("./labo.service");
 const labo_controller_1 = require("./labo.controller");
+const notification_module_1 = require("../../../notification/notification.module");
 let LaboModule = class LaboModule {
 };
 exports.LaboModule = LaboModule;
 exports.LaboModule = LaboModule = __decorate([
-    (0, common_1.Module)({ providers: [labo_service_1.LaboService], controllers: [labo_controller_1.LaboController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [labo_service_1.LaboService],
+        controllers: [labo_controller_1.LaboController],
+    })
 ], LaboModule);
 //# sourceMappingURL=labo.module.js.map

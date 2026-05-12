@@ -1,8 +1,10 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Post, Get, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { AnapathService } from './anapath.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateAnapathDto } from './dto/create-anapath.dto';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/anapath')
 export class AnapathController {

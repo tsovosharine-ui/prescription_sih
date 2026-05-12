@@ -1,29 +1,54 @@
 import { NotificationService } from './notification.service';
 export declare class NotificationController {
-    private readonly notificationService;
-    constructor(notificationService: NotificationService);
-    createMedicale(id: string): Promise<{
+    private service;
+    constructor(service: NotificationService);
+    getMes(req: any): Promise<{
         id: string;
         createdAt: Date;
-        prescriptionMedicaleId: string | null;
-        prescriptionNonMedicaleId: string | null;
-        prescriptionSurveillanceId: string | null;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
         statut: string;
-    }>;
-    createNonMedicale(id: string): Promise<{
+        tentatives: number;
+        luAt: Date | null;
+    }[]>;
+    getByService(service: string): Promise<{
         id: string;
         createdAt: Date;
-        prescriptionMedicaleId: string | null;
-        prescriptionNonMedicaleId: string | null;
-        prescriptionSurveillanceId: string | null;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
         statut: string;
-    }>;
-    createSurveillance(id: string): Promise<{
+        tentatives: number;
+        luAt: Date | null;
+    }[]>;
+    getUnread(destinataire: string): Promise<number>;
+    markAsRead(id: string): Promise<{
         id: string;
         createdAt: Date;
-        prescriptionMedicaleId: string | null;
-        prescriptionNonMedicaleId: string | null;
-        prescriptionSurveillanceId: string | null;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
         statut: string;
+        tentatives: number;
+        luAt: Date | null;
     }>;
 }

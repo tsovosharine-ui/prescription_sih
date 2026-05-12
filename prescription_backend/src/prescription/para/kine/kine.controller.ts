@@ -1,8 +1,10 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Post, Get, Body, UseGuards, Request, Param } from '@nestjs/common';
 import { KineService } from './kine.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateKineDto } from './dto/create-kine.dto';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/kine')
 export class KineController {

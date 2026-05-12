@@ -10,10 +10,15 @@ exports.EegModule = void 0;
 const common_1 = require("@nestjs/common");
 const eeg_service_1 = require("./eeg.service");
 const eeg_controller_1 = require("./eeg.controller");
+const notification_module_1 = require("../../../notification/notification.module");
 let EegModule = class EegModule {
 };
 exports.EegModule = EegModule;
 exports.EegModule = EegModule = __decorate([
-    (0, common_1.Module)({ providers: [eeg_service_1.EegService], controllers: [eeg_controller_1.EegController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [eeg_service_1.EegService],
+        controllers: [eeg_controller_1.EegController],
+    })
 ], EegModule);
 //# sourceMappingURL=eeg.module.js.map

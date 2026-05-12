@@ -1,7 +1,9 @@
 import { PrismaService } from '../../prisma/prisma.service';
+import { PrescriptionNotifierService } from '../../notification/prescription-notifier.service';
 export declare class MedicaleService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private notifier;
+    constructor(prisma: PrismaService, notifier: PrescriptionNotifierService);
     create(prescripteurId: string, dto: any): Promise<{
         ordonnance: {
             id: string;
@@ -28,13 +30,19 @@ export declare class MedicaleService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }>;
     findByPatient(patientId: string): Promise<({
+        ordonnance: {
+            id: string;
+            createdAt: Date;
+            medicaments: import("@prisma/client/runtime/library").JsonValue;
+            prescriptionId: string;
+        } | null;
         medicaments: {
             id: string;
             nom: string;
@@ -50,31 +58,23 @@ export declare class MedicaleService {
             instructions: string | null;
             prescriptionId: string;
         }[];
-        prescripteur: {
-            id: string;
-            email: string;
-            nom: string;
-            prenoms: string;
-            password: string;
-            poste: string;
-            matricule: string | null;
-            numeroOrdre: string | null;
-            ordre: string | null;
-            telephone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-        };
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     })[]>;
-    findOne(id: string): Promise<({
+    findOne(id: string): Promise<{
+        ordonnance: {
+            id: string;
+            createdAt: Date;
+            medicaments: import("@prisma/client/runtime/library").JsonValue;
+            prescriptionId: string;
+        } | null;
         medicaments: {
             id: string;
             nom: string;
@@ -94,12 +94,12 @@ export declare class MedicaleService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
-    }) | null>;
+    }>;
     createOrdonnance(prescriptionId: string, medicaments: any[]): Promise<{
         id: string;
         createdAt: Date;
@@ -110,10 +110,10 @@ export declare class MedicaleService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }>;
 }

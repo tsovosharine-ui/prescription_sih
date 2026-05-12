@@ -10,10 +10,15 @@ exports.AnapathModule = void 0;
 const common_1 = require("@nestjs/common");
 const anapath_service_1 = require("./anapath.service");
 const anapath_controller_1 = require("./anapath.controller");
+const notification_module_1 = require("../../../notification/notification.module");
 let AnapathModule = class AnapathModule {
 };
 exports.AnapathModule = AnapathModule;
 exports.AnapathModule = AnapathModule = __decorate([
-    (0, common_1.Module)({ providers: [anapath_service_1.AnapathService], controllers: [anapath_controller_1.AnapathController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [anapath_service_1.AnapathService],
+        controllers: [anapath_controller_1.AnapathController],
+    })
 ], AnapathModule);
 //# sourceMappingURL=anapath.module.js.map

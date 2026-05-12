@@ -7,29 +7,24 @@ export declare class AnapathController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         typeExamen: string;
     }>;
-    findByPatient(patientId: string): Promise<({
-        prescripteur: {
-            nom: string;
-            prenoms: string;
-        };
-    } & {
+    findByPatient(patientId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         typeExamen: string;
-    })[]>;
+    }[]>;
 }

@@ -1,30 +1,95 @@
 import { PrismaService } from '../prisma/prisma.service';
 export declare class NotificationService {
     private prisma;
-    private readonly logger;
     constructor(prisma: PrismaService);
-    createForMedicale(prescriptionMedicaleId: string): Promise<{
+    create(dto: {
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: any;
+    }): Promise<{
         id: string;
         createdAt: Date;
-        prescriptionMedicaleId: string | null;
-        prescriptionNonMedicaleId: string | null;
-        prescriptionSurveillanceId: string | null;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
         statut: string;
+        tentatives: number;
+        luAt: Date | null;
     }>;
-    createForNonMedicale(prescriptionNonMedicaleId: string): Promise<{
+    getPending(userId: string, service?: string): Promise<{
         id: string;
         createdAt: Date;
-        prescriptionMedicaleId: string | null;
-        prescriptionNonMedicaleId: string | null;
-        prescriptionSurveillanceId: string | null;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
         statut: string;
-    }>;
-    createForSurveillance(prescriptionSurveillanceId: string): Promise<{
+        tentatives: number;
+        luAt: Date | null;
+    }[]>;
+    markAsRead(id: string): Promise<{
         id: string;
         createdAt: Date;
-        prescriptionMedicaleId: string | null;
-        prescriptionNonMedicaleId: string | null;
-        prescriptionSurveillanceId: string | null;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
         statut: string;
+        tentatives: number;
+        luAt: Date | null;
     }>;
+    markAsSent(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
+        statut: string;
+        tentatives: number;
+        luAt: Date | null;
+    }>;
+    getByDestinataire(destinataire: string, limit?: number): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        type: string;
+        destinataire: string;
+        expediteurId: string;
+        patientId: string;
+        referenceId: string;
+        referenceType: string;
+        titre: string;
+        contenu: import("@prisma/client/runtime/library").JsonValue;
+        statut: string;
+        tentatives: number;
+        luAt: Date | null;
+    }[]>;
+    getUnreadCount(destinataire: string): Promise<number>;
 }

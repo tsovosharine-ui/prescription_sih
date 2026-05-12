@@ -7,8 +7,8 @@ export declare class TransfusionController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         quantite: string | null;
         notes: string | null;

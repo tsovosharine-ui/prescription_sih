@@ -8,12 +8,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
-const core_1 = require("@nestjs/core");
-const prisma_exception_filter_1 = require("./common/filters/prisma-exception.filter");
-const notification_module_1 = require("./notification/notification.module");
 const prisma_module_1 = require("./prisma/prisma.module");
 const auth_module_1 = require("./auth/auth.module");
 const patient_module_1 = require("./patient/patient.module");
+const notification_module_1 = require("./notification/notification.module");
 const medicale_module_1 = require("./prescription/medicale/medicale.module");
 const non_medicale_module_1 = require("./prescription/non-medicale/non-medicale.module");
 const surveillance_module_1 = require("./prescription/surveillance/surveillance.module");
@@ -32,10 +30,10 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            notification_module_1.NotificationModule,
             prisma_module_1.PrismaModule,
             auth_module_1.AuthModule,
             patient_module_1.PatientModule,
+            notification_module_1.NotificationModule,
             medicale_module_1.MedicaleModule,
             non_medicale_module_1.NonMedicaleModule,
             surveillance_module_1.SurveillanceModule,
@@ -48,12 +46,6 @@ exports.AppModule = AppModule = __decorate([
             kine_module_1.KineModule,
             dialyse_module_1.DialyseModule,
             endoscopie_module_1.EndoscopieModule,
-        ],
-        providers: [
-            {
-                provide: core_1.APP_FILTER,
-                useClass: prisma_exception_filter_1.PrismaExceptionFilter,
-            },
         ],
     })
 ], AppModule);

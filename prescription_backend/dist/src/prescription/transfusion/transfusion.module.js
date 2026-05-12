@@ -10,11 +10,13 @@ exports.TransfusionModule = void 0;
 const common_1 = require("@nestjs/common");
 const transfusion_service_1 = require("./transfusion.service");
 const transfusion_controller_1 = require("./transfusion.controller");
+const notification_module_1 = require("../../notification/notification.module");
 let TransfusionModule = class TransfusionModule {
 };
 exports.TransfusionModule = TransfusionModule;
 exports.TransfusionModule = TransfusionModule = __decorate([
     (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
         providers: [transfusion_service_1.TransfusionService],
         controllers: [transfusion_controller_1.TransfusionController],
     })

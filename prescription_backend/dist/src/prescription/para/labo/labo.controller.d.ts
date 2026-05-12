@@ -7,8 +7,8 @@ export declare class LaboController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
@@ -16,22 +16,17 @@ export declare class LaboController {
         renseignements: string;
         analyses: string[];
     }>;
-    findByPatient(patientId: string): Promise<({
-        prescripteur: {
-            nom: string;
-            prenoms: string;
-        };
-    } & {
+    findByPatient(patientId: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        statut: string;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
         analyses: string[];
-    })[]>;
+    }[]>;
 }

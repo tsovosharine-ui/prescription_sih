@@ -1,8 +1,10 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Get, Post, Body, Param, Put, UseGuards, Request } from '@nestjs/common';
 import { MedicaleService } from './medicale.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { CreateMedicaleDto } from './dto/create-medicale.dto';
 
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('prescriptions/medicale')
 export class MedicaleController {

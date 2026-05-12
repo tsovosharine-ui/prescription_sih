@@ -6,6 +6,8 @@ export declare class NonMedicaleService {
         items: {
             id: string;
             createdAt: Date;
+            type: string;
+            description: string;
             frequence: string | null;
             duree: string | null;
             dateDebut: Date | null;
@@ -13,16 +15,14 @@ export declare class NonMedicaleService {
             instructions: string | null;
             prescriptionId: string;
             typeLabel: string;
-            type: string;
-            description: string;
         }[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }>;
     findByPatient(patientId: string): Promise<({
@@ -30,25 +30,27 @@ export declare class NonMedicaleService {
             nom: string;
         };
         items: {
+            description: string;
             frequence: string | null;
             duree: string | null;
             dateDebut: Date | null;
             typeLabel: string;
-            description: string;
         }[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     })[]>;
     findOne(id: string): Promise<({
         items: {
             id: string;
             createdAt: Date;
+            type: string;
+            description: string;
             frequence: string | null;
             duree: string | null;
             dateDebut: Date | null;
@@ -56,25 +58,23 @@ export declare class NonMedicaleService {
             instructions: string | null;
             prescriptionId: string;
             typeLabel: string;
-            type: string;
-            description: string;
         }[];
     } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }) | null>;
     updateStatut(id: string, statut: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
         statut: string;
         notifierInfirmier: boolean;
-        patientId: string;
         prescripteurId: string;
     }>;
 }

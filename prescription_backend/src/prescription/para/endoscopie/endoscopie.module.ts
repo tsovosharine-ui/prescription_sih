@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { EndoscopieService } from './endoscopie.service';
 import { EndoscopieController } from './endoscopie.controller';
+import { NotificationModule } from '../../../notification/notification.module';
 
-@Module({ providers: [EndoscopieService], controllers: [EndoscopieController] })
+@Module({
+  imports: [NotificationModule],
+  providers: [EndoscopieService],
+  controllers: [EndoscopieController],
+})
 export class EndoscopieModule {}

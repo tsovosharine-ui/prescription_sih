@@ -10,10 +10,15 @@ exports.KineModule = void 0;
 const common_1 = require("@nestjs/common");
 const kine_service_1 = require("./kine.service");
 const kine_controller_1 = require("./kine.controller");
+const notification_module_1 = require("../../../notification/notification.module");
 let KineModule = class KineModule {
 };
 exports.KineModule = KineModule;
 exports.KineModule = KineModule = __decorate([
-    (0, common_1.Module)({ providers: [kine_service_1.KineService], controllers: [kine_controller_1.KineController] })
+    (0, common_1.Module)({
+        imports: [notification_module_1.NotificationModule],
+        providers: [kine_service_1.KineService],
+        controllers: [kine_controller_1.KineController],
+    })
 ], KineModule);
 //# sourceMappingURL=kine.module.js.map

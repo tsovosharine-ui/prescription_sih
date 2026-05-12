@@ -13,47 +13,59 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationController = void 0;
+const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const notification_service_1 = require("./notification.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let NotificationController = class NotificationController {
-    notificationService;
-    constructor(notificationService) {
-        this.notificationService = notificationService;
+    service;
+    constructor(service) {
+        this.service = service;
     }
-    createMedicale(id) {
-        return this.notificationService.createForMedicale(id);
+    getMes(req) {
+        return this.service.getByDestinataire(req.user.sub);
     }
-    createNonMedicale(id) {
-        return this.notificationService.createForNonMedicale(id);
+    getByService(service) {
+        return this.service.getByDestinataire(service);
     }
-    createSurveillance(id) {
-        return this.notificationService.createForSurveillance(id);
+    getUnread(destinataire) {
+        return this.service.getUnreadCount(destinataire);
+    }
+    markAsRead(id) {
+        return this.service.markAsRead(id);
     }
 };
 exports.NotificationController = NotificationController;
 __decorate([
-    (0, common_1.Post)('medicale/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Get)('mes-notifications'),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
-], NotificationController.prototype, "createMedicale", null);
+], NotificationController.prototype, "getMes", null);
 __decorate([
-    (0, common_1.Post)('non-medicale/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    (0, common_1.Get)('service/:service'),
+    __param(0, (0, common_1.Param)('service')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], NotificationController.prototype, "createNonMedicale", null);
+], NotificationController.prototype, "getByService", null);
 __decorate([
-    (0, common_1.Post)('surveillance/:id'),
+    (0, common_1.Get)('non-lues/:destinataire'),
+    __param(0, (0, common_1.Param)('destinataire')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], NotificationController.prototype, "getUnread", null);
+__decorate([
+    (0, common_1.Put)(':id/lire'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], NotificationController.prototype, "createSurveillance", null);
+], NotificationController.prototype, "markAsRead", null);
 exports.NotificationController = NotificationController = __decorate([
+    (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('notifications'),
     __metadata("design:paramtypes", [notification_service_1.NotificationService])
