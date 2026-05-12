@@ -20,47 +20,43 @@ model User {
   telephone      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  prescriptionsMed      PrescriptionMedicale[]
-  prescriptionsNM       PrescriptionNonMedicale[]
-  prescriptionsSurv     PrescriptionSurveillance[]
-  prescriptionsTrans    PrescriptionTransfusion[]
-  prescriptionsBloc     PrescriptionBloc[]
-  prescriptionsLabo     PrescriptionLabo[]
-  prescriptionsImagerie PrescriptionImagerie[]
-  prescriptionsAnapath  PrescriptionAnapath[]
-  prescriptionsEEG      PrescriptionEEG[]
-  prescriptionsKine     PrescriptionKine[]
-  prescriptionsDialyse  PrescriptionDialyse[]
-  prescriptionsEndo     PrescriptionEndoscopie[]
 }
 
 model Patient {
+  id              String    @id @default(uuid())
+  idPermanent     String    @unique
+  nom             String
+  prenom          String
+  dateNaissance   DateTime?
+  sexe            String?
+  telephone       String?
+  adresse         String?
+  allergies       String[]
+  categorie       String?
+  groupeSanguin   String?
+  chambre         String?
+  lit             String?
+  service         String?
+  typeHospital    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Notification {
   id            String    @id @default(uuid())
-  idPermanent   String    @unique
-  nom           String
-  prenom        String
-  dateNaissance DateTime?
-  sexe          String?
-  telephone     String?
-  adresse       String?
-  allergies     String[]
-  categorie     String?
+  type          String
+  destinataire  String
+  expediteurId  String
+  patientId     String
+  referenceId   String
+  referenceType String
+  titre         String
+  contenu       Json
+  statut        String    @default("EN_ATTENTE")
+  tentatives    Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  prescriptionsMed      PrescriptionMedicale[]
-  prescriptionsNM       PrescriptionNonMedicale[]
-  prescriptionsSurv     PrescriptionSurveillance[]
-  prescriptionsTrans    PrescriptionTransfusion[]
-  prescriptionsBloc     PrescriptionBloc[]
-  prescriptionsLabo     PrescriptionLabo[]
-  prescriptionsImagerie PrescriptionImagerie[]
-  prescriptionsAnapath  PrescriptionAnapath[]
-  prescriptionsEEG      PrescriptionEEG[]
-  prescriptionsKine     PrescriptionKine[]
-  prescriptionsDialyse  PrescriptionDialyse[]
-  prescriptionsEndo     PrescriptionEndoscopie[]
+  luAt          DateTime?
 }
 
 model PrescriptionMedicale {
@@ -73,11 +69,8 @@ model PrescriptionMedicale {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
-  notifications NotificationInfirmier[]
-  medicaments  Medicament[]
-  ordonnance   Ordonnance?
+  medicaments Medicament[]
+  ordonnance  Ordonnance?
 }
 
 model Medicament {
@@ -95,7 +88,7 @@ model Medicament {
   remarques      String?
   createdAt      DateTime  @default(now())
 
-  prescription PrescriptionMedicale @relation(fields: [prescriptionId], references: [id])
+  prescription PrescriptionMedicale @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 }
 
 model Ordonnance {
@@ -104,7 +97,7 @@ model Ordonnance {
   medicaments    Json
   createdAt      DateTime @default(now())
 
-  prescription PrescriptionMedicale @relation(fields: [prescriptionId], references: [id])
+  prescription PrescriptionMedicale @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 }
 
 model PrescriptionNonMedicale {
@@ -116,17 +109,14 @@ model PrescriptionNonMedicale {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
-  notifications NotificationInfirmier[]
-  items        ItemNonMedical[]
+  items ItemNonMedical[]
 }
 
 model ItemNonMedical {
   id             String    @id @default(uuid())
-  typeLabel      String
   prescriptionId String
   type           String
+  typeLabel      String?
   description    String
   duree          String?
   frequence      String?
@@ -135,7 +125,7 @@ model ItemNonMedical {
   instructions   String?
   createdAt      DateTime  @default(now())
 
-  prescription PrescriptionNonMedicale @relation(fields: [prescriptionId], references: [id])
+  prescription PrescriptionNonMedicale @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 }
 
 model PrescriptionSurveillance {
@@ -148,10 +138,7 @@ model PrescriptionSurveillance {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
-  notifications NotificationInfirmier[]
-  parametres   ParametreSurveillance[]
+  parametres ParametreSurveillance[]
 }
 
 model ParametreSurveillance {
@@ -164,7 +151,7 @@ model ParametreSurveillance {
   details        Json?
   createdAt      DateTime @default(now())
 
-  prescription PrescriptionSurveillance @relation(fields: [prescriptionId], references: [id])
+  prescription PrescriptionSurveillance @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 }
 
 model PrescriptionTransfusion {
@@ -186,9 +173,6 @@ model PrescriptionTransfusion {
   statut          String    @default("ENVOYEE")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionBloc {
@@ -207,9 +191,6 @@ model PrescriptionBloc {
   statut             String    @default("DEMANDE_CPA")
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionLabo {
@@ -224,9 +205,6 @@ model PrescriptionLabo {
   statut         String   @default("CREEE")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionImagerie {
@@ -242,9 +220,6 @@ model PrescriptionImagerie {
   statut         String   @default("CREEE")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionAnapath {
@@ -258,9 +233,6 @@ model PrescriptionAnapath {
   statut         String   @default("CREEE")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionEEG {
@@ -275,9 +247,6 @@ model PrescriptionEEG {
   statut         String   @default("CREEE")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionKine {
@@ -297,9 +266,6 @@ model PrescriptionKine {
   statut            String   @default("CREEE")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionDialyse {
@@ -314,9 +280,6 @@ model PrescriptionDialyse {
   statut         String   @default("CREEE")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
 }
 
 model PrescriptionEndoscopie {
@@ -332,39 +295,4 @@ model PrescriptionEndoscopie {
   statut         String   @default("CREEE")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-
-  patient      Patient @relation(fields: [patientId], references: [id])
-  prescripteur User    @relation(fields: [prescripteurId], references: [id])
-}
-
-model NotificationInfirmier {
-  id                       String   @id @default(uuid())
-  prescriptionMedicaleId   String?
-  prescriptionNonMedicaleId String?
-  prescriptionSurveillanceId String?
-  statut                   String   @default("ENVOYE")
-  createdAt                DateTime @default(now())
-
-  prescriptionMedicale   PrescriptionMedicale?   @relation(fields: [prescriptionMedicaleId], references: [id])
-  prescriptionNonMedicale PrescriptionNonMedicale? @relation(fields: [prescriptionNonMedicaleId], references: [id])
-  prescriptionSurveillance PrescriptionSurveillance? @relation(fields: [prescriptionSurveillanceId], references: [id])
-}
-
-// ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
-
-model Notification {
-  id            String    @id @default(uuid())
-  type          String
-  destinataire  String
-  expediteurId  String
-  patientId     String
-  referenceId   String
-  referenceType String
-  titre         String
-  contenu       Json
-  statut        String    @default("EN_ATTENTE")
-  tentatives    Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  luAt          DateTime?
 }
