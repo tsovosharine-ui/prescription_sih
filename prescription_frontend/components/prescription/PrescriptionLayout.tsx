@@ -120,6 +120,12 @@ export default function PrescriptionLayout({ patient, prescripteur, children }: 
                       {[age ? `${age} ans` : null, sexeLabel].filter(Boolean).join(' / ')}
                     </span>
                   )}
+                  {(chambreLabel || patient?.service) && <div style={{width:3, height:3, borderRadius:'50%', background:'var(--txt3)'}}/>}
+                  {patient?.service && (
+                    <span style={{fontSize:11, color:'var(--txt2)'}}>
+                      {patient.service}
+                    </span>
+                  )}
                   {chambreLabel && <div style={{width:3, height:3, borderRadius:'50%', background:'var(--txt3)'}}/>}
                   {/* Chambre */}
                   {chambreLabel && (
