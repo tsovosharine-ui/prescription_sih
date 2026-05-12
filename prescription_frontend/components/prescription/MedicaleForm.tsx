@@ -19,6 +19,7 @@ interface Medicament {
 }
 
 interface PrescriptionEnCours {
+  statut?: string;
   id: string;
   medicaments: { nom: string; dose: string; quantite: number; frequence: string; voie?: string; dateDebut?: string; duree?: string }[];
   prescripteur?: { nom: string };
