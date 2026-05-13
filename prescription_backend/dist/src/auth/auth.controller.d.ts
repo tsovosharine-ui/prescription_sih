@@ -1,22 +1,14 @@
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 export declare class AuthController {
     private authService;
     constructor(authService: AuthService);
-    register(dto: {
-        nom: string;
-        prenoms: string;
-        email: string;
-        password: string;
-        poste: string;
-        matricule?: string;
-        numeroOrdre?: string;
-        ordre?: string;
-        telephone?: string;
-    }): Promise<{
+    register(dto: RegisterDto): Promise<{
         id: string;
-        email: string;
         nom: string;
         prenoms: string;
+        email: string;
         poste: string;
         matricule: string | null;
         numeroOrdre: string | null;
@@ -25,16 +17,13 @@ export declare class AuthController {
         createdAt: Date;
         updatedAt: Date;
     }>;
-    login(dto: {
-        email: string;
-        password: string;
-    }): Promise<{
+    login(dto: LoginDto): Promise<{
         access_token: string;
         user: {
             id: string;
-            email: string;
             nom: string;
             prenoms: string;
+            email: string;
             poste: string;
             matricule: string | null;
             numeroOrdre: string | null;
@@ -46,9 +35,9 @@ export declare class AuthController {
     }>;
     getProfile(req: any): Promise<{
         id: string;
-        email: string;
         nom: string;
         prenoms: string;
+        email: string;
         poste: string;
         matricule: string | null;
         numeroOrdre: string | null;

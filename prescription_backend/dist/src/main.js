@@ -10,9 +10,8 @@ async function bootstrap() {
     app.useGlobalPipes(new common_1.ValidationPipe({ whitelist: true }));
     const config = new swagger_1.DocumentBuilder()
         .setTitle('API Prescriptions - CHU Andrainjato')
-        .setDescription('Documentation interactive de l\'API du module Prescription')
+        .setDescription("Documentation interactive de l'API du module Prescription")
         .setVersion('1.0')
-        .addBearerAuth()
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api/docs', app, document);
