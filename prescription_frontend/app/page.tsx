@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from 'react';
 import PrescriptionLayout, { Section } from '@/components/prescription/PrescriptionLayout';
 import MedicaleForm from '@/components/prescription/MedicaleForm';
@@ -13,7 +14,7 @@ import KineForm from '@/components/prescription/para/KineForm';
 import DiaryseForm from '@/components/prescription/para/DiaryseForm';
 import EndoscopieForm from '@/components/prescription/para/EndoscopieForm';
 import BlocForm from '@/components/prescription/BlocForm';
-import { login, getToken, setToken, getCurrentUser } from '@/lib/api';
+import { login, getToken, setToken, removeToken } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -37,9 +38,9 @@ export default function Home() {
   const [dataError, setDataError] = useState('');
 
   useEffect(() => {
-    if (getToken()) {
-      setIsLoggedIn(true);
-      loadData(getToken()!);
+    const token = getToken();
+    if (token) {
+      loadData(token);
     }
   }, []);
 
@@ -47,18 +48,21 @@ export default function Home() {
     setDataLoading(true);
     setDataError('');
     try {
-      const PATIENT_ID = process.env.NEXT_PUBLIC_PATIENT_ID || 'IP-2026-00001';
-      const [patients, userData] = await Promise.all([
-        fetchWithToken(`${API_URL}/patients`, token),
+      const [patientData, userData] = await Promise.all([
+        fetchWithToken(`${API_URL}/patients/permanent/IP-2026-00001`, token),
         fetchWithToken(`${API_URL}/auth/profile`, token),
       ]);
-      const firstPatient = Array.isArray(patients)
-        ? (patients.find((p: any) => p.idPermanent === PATIENT_ID) || patients.find((p: any) => p.service) || patients[0])
-        : null;
-      setPatient(firstPatient);
+      setPatient(patientData);
       setPrescripteur(userData);
+      setIsLoggedIn(true);
     } catch (err: any) {
-      setDataError('Impossible de charger les données : ' + err?.message);
+      // Token expiré ou invalide → retour au login
+      if (err?.message === '401') {
+        removeToken();
+        setIsLoggedIn(false);
+      } else {
+        setDataError('Impossible de charger les données : ' + err?.message);
+      }
     } finally {
       setDataLoading(false);
     }
@@ -70,7 +74,6 @@ export default function Home() {
     try {
       const data = await login(email, password);
       setToken(data.access_token);
-      setIsLoggedIn(true);
       await loadData(data.access_token);
     } catch {
       setError('Email ou mot de passe incorrect');
@@ -79,6 +82,34 @@ export default function Home() {
     }
   };
 
+  // Chargement initial
+  if (dataLoading) {
+    return (
+      <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div style={{textAlign:'center',color:'var(--txt3)'}}>
+          <span className="ms" style={{fontSize:40,display:'block',marginBottom:12}}>hourglass_top</span>
+          Chargement...
+        </div>
+      </div>
+    );
+  }
+
+  // Erreur chargement (pas 401)
+  if (dataError) {
+    return (
+      <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div className="card" style={{maxWidth:400,padding:24,textAlign:'center'}}>
+          <span className="ms" style={{fontSize:40,color:'var(--red)',display:'block',marginBottom:12}}>error</span>
+          <p style={{color:'var(--red)',fontSize:13}}>{dataError}</p>
+          <button className="bp" style={{marginTop:16}} onClick={() => loadData(getToken()!)}>
+            <span className="ms">refresh</span> Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Écran de connexion
   if (!isLoggedIn) {
     return (
       <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)'}}>
@@ -92,18 +123,20 @@ export default function Home() {
           </div>
           <div className="mb12">
             <label className="lbl">Email</label>
-            <input type="text" value={email} onChange={e => setEmail(e.target.value)} placeholder="jean@chu.mg" onKeyDown={e => e.key==='Enter' && handleLogin()}/>
+            <input type="text" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="jean@chu.mg" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
           <div className="mb12">
             <label className="lbl">Mot de passe</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" onKeyDown={e => e.key==='Enter' && handleLogin()}/>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
           </div>
           {error && (
             <div style={{background:'var(--red-lt)',border:'1px solid var(--red-bdr)',borderRadius:'8px',padding:'10px 12px',fontSize:'12px',color:'var(--red)',marginBottom:'12px'}}>
               {error}
             </div>
           )}
-          <button className="bp" onClick={handleLogin} style={{opacity:loading?0.7:1}}>
+          <button className="bp" onClick={handleLogin} style={{opacity: loading ? 0.7 : 1}}>
             <span className="ms">login</span>
             {loading ? 'Connexion...' : 'Se connecter'}
           </button>
@@ -112,54 +145,30 @@ export default function Home() {
     );
   }
 
-  if (dataLoading) {
-    return (
-      <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)'}}>
-        <div style={{textAlign:'center',color:'var(--txt3)',fontSize:'14px'}}>
-          <span className="ms" style={{fontSize:'32px',display:'block',marginBottom:'12px'}}>hourglass_empty</span>
-          Chargement des données...
-        </div>
-      </div>
-    );
-  }
-
-  if (dataError || !patient) {
-    return (
-      <div style={{height:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)'}}>
-        <div className="card" style={{maxWidth:'400px',padding:'24px',textAlign:'center'}}>
-          <span className="ms" style={{fontSize:'32px',color:'var(--red)',display:'block',marginBottom:'12px'}}>error</span>
-          <p style={{fontSize:'14px',color:'var(--txt2)'}}>{dataError || 'Aucun patient trouvé.'}</p>
-          <button className="bp" style={{marginTop:'16px'}} onClick={() => loadData(getToken()!)}>
-            <span className="ms">refresh</span>Réessayer
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  function SectionContent({ section }: { section: Section }) {
-    const props = { patient, prescripteur };
-    switch (section) {
-      case 'med':   return <MedicaleForm {...props} />;
-      case 'nm':    return <NonMedicaleForm {...props} />;
-      case 'surv':  return <SurveillanceForm {...props} />;
-      case 'trans': return <TransfusionForm {...props} />;
-      case 'labo':  return <LaboForm {...props} />;
-      case 'imag':  return <ImagerieForm {...props} />;
-      case 'ana':   return <AnapathForm {...props} />;
-      case 'eeg':   return <EEGForm {...props} />;
-      case 'kine':  return <KineForm {...props} />;
-      case 'dial':  return <DiaryseForm {...props} />;
-      case 'endo':  return <EndoscopieForm {...props} />;
-      case 'bloc':  return <BlocForm {...props} />;
-      default:      return <MedicaleForm {...props} />;
-    }
-  }
-
   return (
     <div style={{height:'100vh',display:'flex',flexDirection:'column',overflow:'hidden'}}>
       <PrescriptionLayout patient={patient} prescripteur={prescripteur}>
-        {(section) => <SectionContent section={section} />}
+        {(section: Section) => {
+          switch (section) {
+            case 'med':   return <MedicaleForm    patient={patient} prescripteur={prescripteur} />;
+            case 'nm':    return <NonMedicaleForm  patient={patient} prescripteur={prescripteur} />;
+            case 'surv':  return <SurveillanceForm patient={patient} prescripteur={prescripteur} />;
+            case 'trans': return <TransfusionForm  patient={patient} prescripteur={prescripteur} />;
+            case 'bloc':  return <BlocForm         patient={patient} prescripteur={prescripteur} />;
+            case 'labo':  return <LaboForm         patient={patient} prescripteur={prescripteur} />;
+            case 'imag':  return <ImagerieForm     patient={patient} prescripteur={prescripteur} />;
+            case 'ana':   return <AnapathForm      patient={patient} prescripteur={prescripteur} />;
+            case 'eeg':   return <EEGForm          patient={patient} prescripteur={prescripteur} />;
+            case 'kine':  return <KineForm         patient={patient} prescripteur={prescripteur} />;
+            case 'dial':  return <DiaryseForm      patient={patient} prescripteur={prescripteur} />;
+            case 'endo':  return <EndoscopieForm   patient={patient} prescripteur={prescripteur} />;
+            default: return (
+              <div style={{textAlign:'center',padding:'40px',color:'var(--txt3)',fontSize:'14px'}}>
+                Section en cours de développement
+              </div>
+            );
+          }
+        }}
       </PrescriptionLayout>
     </div>
   );
