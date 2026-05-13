@@ -32,9 +32,9 @@ export declare class MedicaleService {
         updatedAt: Date;
         patientId: string;
         statut: string;
+        prescripteurId: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        prescripteurId: string;
     }>;
     findByPatient(patientId: string): Promise<({
         ordonnance: {
@@ -64,9 +64,9 @@ export declare class MedicaleService {
         updatedAt: Date;
         patientId: string;
         statut: string;
+        prescripteurId: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        prescripteurId: string;
     })[]>;
     findOne(id: string): Promise<{
         ordonnance: {
@@ -96,9 +96,9 @@ export declare class MedicaleService {
         updatedAt: Date;
         patientId: string;
         statut: string;
+        prescripteurId: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        prescripteurId: string;
     }>;
     createOrdonnance(prescriptionId: string, medicaments: any[]): Promise<{
         id: string;
@@ -112,8 +112,8 @@ export declare class MedicaleService {
         updatedAt: Date;
         patientId: string;
         statut: string;
+        prescripteurId: string;
         remarques: string | null;
         notifierInfirmier: boolean;
-        prescripteurId: string;
     }>;
 }

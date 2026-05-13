@@ -24,6 +24,11 @@ export declare class PatientController {
         adresse: string | null;
         allergies: string[];
         categorie: string | null;
+        groupeSanguin: string | null;
+        chambre: string | null;
+        lit: string | null;
+        service: string | null;
+        typeHospital: string | null;
     }>;
     findAll(): Promise<{
         id: string;
@@ -38,6 +43,11 @@ export declare class PatientController {
         adresse: string | null;
         allergies: string[];
         categorie: string | null;
+        groupeSanguin: string | null;
+        chambre: string | null;
+        lit: string | null;
+        service: string | null;
+        typeHospital: string | null;
     }[]>;
     search(q: string): Promise<{
         id: string;
@@ -52,6 +62,11 @@ export declare class PatientController {
         adresse: string | null;
         allergies: string[];
         categorie: string | null;
+        groupeSanguin: string | null;
+        chambre: string | null;
+        lit: string | null;
+        service: string | null;
+        typeHospital: string | null;
     }[]>;
     findById(id: string): Promise<{
         id: string;
@@ -66,6 +81,11 @@ export declare class PatientController {
         adresse: string | null;
         allergies: string[];
         categorie: string | null;
+        groupeSanguin: string | null;
+        chambre: string | null;
+        lit: string | null;
+        service: string | null;
+        typeHospital: string | null;
     }>;
     findByIdPermanent(idPermanent: string): Promise<{
         id: string;
@@ -80,6 +100,11 @@ export declare class PatientController {
         adresse: string | null;
         allergies: string[];
         categorie: string | null;
+        groupeSanguin: string | null;
+        chambre: string | null;
+        lit: string | null;
+        service: string | null;
+        typeHospital: string | null;
     }>;
     update(id: string, dto: any): Promise<{
         id: string;
@@ -94,5 +119,10 @@ export declare class PatientController {
         adresse: string | null;
         allergies: string[];
         categorie: string | null;
+        groupeSanguin: string | null;
+        chambre: string | null;
+        lit: string | null;
+        service: string | null;
+        typeHospital: string | null;
     }>;
 }

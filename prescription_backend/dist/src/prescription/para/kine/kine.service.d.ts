@@ -10,8 +10,8 @@ export declare class KineService {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        remarques: string | null;
         prescripteurId: string;
+        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
@@ -28,8 +28,8 @@ export declare class KineService {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        remarques: string | null;
         prescripteurId: string;
+        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
@@ -46,8 +46,8 @@ export declare class KineService {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        remarques: string | null;
         prescripteurId: string;
+        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
@@ -64,8 +64,8 @@ export declare class KineService {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        remarques: string | null;
         prescripteurId: string;
+        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;

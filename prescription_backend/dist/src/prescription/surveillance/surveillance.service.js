@@ -30,27 +30,24 @@ let SurveillanceService = class SurveillanceService {
     }
     async findByPatient(patientId) {
         return this.prisma.prescriptionSurveillance.findMany({
-            where: { patientId, statut: 'ACTIVE' },
-            include: {
-                parametres: {
-                    select: {
-                        parametre: true,
-                        frequence: true,
-                        duree: true,
-                        seuil: true,
-                    },
-                },
-                prescripteur: {
-                    select: { nom: true },
-                },
-            },
+            where: { patientId },
+            include: { parametres: true },
+            orderBy: { createdAt: 'desc' },
         });
     }
     async findOne(id) {
-        return this.prisma.prescriptionSurveillance.findUnique({ where: { id }, include: { parametres: true } });
+        const p = await this.prisma.prescriptionSurveillance.findUnique({
+            where: { id },
+            include: { parametres: true },
+        });
+        if (!p)
+            throw new common_1.NotFoundException('Prescription introuvable');
+        return p;
     }
     async updateStatut(id, statut) {
-        return this.prisma.prescriptionSurveillance.update({ where: { id }, data: { statut } });
+        return this.prisma.prescriptionSurveillance.update({
+            where: { id }, data: { statut },
+        });
     }
 };
 exports.SurveillanceService = SurveillanceService;

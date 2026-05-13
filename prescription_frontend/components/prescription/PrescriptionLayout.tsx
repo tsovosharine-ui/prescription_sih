@@ -166,7 +166,7 @@ export default function PrescriptionLayout({ patient, prescripteur, children }: 
 
       {/* NAVIGATION PRINCIPALE */}
       <div style={{background:'var(--card)', borderBottom:'1px solid var(--bdr)', flexShrink:0}}>
-        <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', overflowX:'auto', gap:0}}>
+        <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', overflowX:'auto', gap:0, justifyContent:'center'}}>
           {mainItems.map(item => {
             const isActive = activeSection === item.id;
             return (
@@ -191,7 +191,7 @@ export default function PrescriptionLayout({ patient, prescripteur, children }: 
       {/* SOUS-NAVIGATION PARA-CLINIQUE */}
       {activeSection === 'para' && (
         <div style={{background:'var(--navy-lt)', borderBottom:'1px solid var(--navy-mid)', flexShrink:0}}>
-          <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', overflowX:'auto', gap:0}}>
+          <div style={{maxWidth:'900px', margin:'0 auto', display:'flex', overflowX:'auto', gap:0, justifyContent:'center'}}>
             {paraItems.map(item => {
               const isActive = activeParaSection === item.id;
               return (

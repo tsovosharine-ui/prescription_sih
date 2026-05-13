@@ -15,7 +15,7 @@ export declare class NonMedicaleController {
             heureDebut: string | null;
             instructions: string | null;
             prescriptionId: string;
-            typeLabel: string;
+            typeLabel: string | null;
         }[];
     } & {
         id: string;
@@ -23,30 +23,10 @@ export declare class NonMedicaleController {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        notifierInfirmier: boolean;
         prescripteurId: string;
+        notifierInfirmier: boolean;
     }>;
     findByPatient(patientId: string): Promise<({
-        prescripteur: {
-            nom: string;
-        };
-        items: {
-            description: string;
-            frequence: string | null;
-            duree: string | null;
-            dateDebut: Date | null;
-            typeLabel: string;
-        }[];
-    } & {
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        patientId: string;
-        statut: string;
-        notifierInfirmier: boolean;
-        prescripteurId: string;
-    })[]>;
-    findOne(id: string): Promise<({
         items: {
             id: string;
             createdAt: Date;
@@ -58,7 +38,7 @@ export declare class NonMedicaleController {
             heureDebut: string | null;
             instructions: string | null;
             prescriptionId: string;
-            typeLabel: string;
+            typeLabel: string | null;
         }[];
     } & {
         id: string;
@@ -66,9 +46,32 @@ export declare class NonMedicaleController {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        notifierInfirmier: boolean;
         prescripteurId: string;
-    }) | null>;
+        notifierInfirmier: boolean;
+    })[]>;
+    findOne(id: string): Promise<{
+        items: {
+            id: string;
+            createdAt: Date;
+            type: string;
+            description: string;
+            frequence: string | null;
+            duree: string | null;
+            dateDebut: Date | null;
+            heureDebut: string | null;
+            instructions: string | null;
+            prescriptionId: string;
+            typeLabel: string | null;
+        }[];
+    } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        notifierInfirmier: boolean;
+    }>;
     updateStatut(id: string, dto: {
         statut: string;
     }): Promise<{
@@ -77,7 +80,7 @@ export declare class NonMedicaleController {
         updatedAt: Date;
         patientId: string;
         statut: string;
-        notifierInfirmier: boolean;
         prescripteurId: string;
+        notifierInfirmier: boolean;
     }>;
 }
