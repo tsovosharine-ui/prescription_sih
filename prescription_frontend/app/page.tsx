@@ -53,7 +53,9 @@ export default function Home() {
         fetchWithToken(`${API_URL}/auth/profile`, token),
       ]);
       // Prend le premier patient disponible
-      const firstPatient = Array.isArray(patients) && patients.length > 0 ? patients[0] : null;
+      const firstPatient = Array.isArray(patients) && patients.length > 0 
+        ? (patients.find((p: any) => p.service) || patients[0]) 
+        : null;
       setPatient(firstPatient);
       setPrescripteur(userData);
     } catch (err: any) {
