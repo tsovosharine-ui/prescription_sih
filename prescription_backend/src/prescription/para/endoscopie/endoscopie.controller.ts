@@ -4,8 +4,6 @@ import { EndoscopieService } from './endoscopie.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateEndoscopieDto } from './dto/create-endoscopie.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/endoscopie')
 export class EndoscopieController {
   constructor(private service: EndoscopieService) {}

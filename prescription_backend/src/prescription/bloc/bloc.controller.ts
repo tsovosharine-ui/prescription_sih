@@ -4,8 +4,6 @@ import { BlocService } from './bloc.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { CreateBlocDto } from './dto/create-bloc.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/bloc')
 export class BlocController {
   constructor(private service: BlocService) {}

@@ -20,8 +20,7 @@ export class AuthController {
     return this.authService.login(dto.email, dto.password);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('profile')
+    @Get('profile')
   getProfile(@Request() req: any) {
     return this.authService.getProfile(req.user.sub);
   }

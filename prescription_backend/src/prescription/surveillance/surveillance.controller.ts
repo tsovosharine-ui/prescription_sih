@@ -4,8 +4,6 @@ import { SurveillanceService } from './surveillance.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { CreateSurveillanceDto } from './dto/create-surveillance.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/surveillance')
 export class SurveillanceController {
   constructor(private service: SurveillanceService) {}

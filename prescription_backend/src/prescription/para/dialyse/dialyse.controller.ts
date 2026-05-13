@@ -4,8 +4,6 @@ import { DialyseService } from './dialyse.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateDialyseDto } from './dto/create-dialyse.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/dialyse')
 export class DialyseController {
   constructor(private service: DialyseService) {}

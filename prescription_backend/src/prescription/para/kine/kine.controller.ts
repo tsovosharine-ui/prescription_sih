@@ -4,8 +4,6 @@ import { KineService } from './kine.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateKineDto } from './dto/create-kine.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/kine')
 export class KineController {
   constructor(private service: KineService) {}

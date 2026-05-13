@@ -4,8 +4,6 @@ import { MedicaleService } from './medicale.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { CreateMedicaleDto } from './dto/create-medicale.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/medicale')
 export class MedicaleController {
   constructor(private service: MedicaleService) {}

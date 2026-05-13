@@ -4,8 +4,6 @@ import { EegService } from './eeg.service';
 import { JwtAuthGuard } from '../../../auth/jwt-auth.guard';
 import { CreateEEGDto } from './dto/create-eeg.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/eeg')
 export class EegController {
   constructor(private service: EegService) {}

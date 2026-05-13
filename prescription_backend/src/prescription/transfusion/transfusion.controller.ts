@@ -4,8 +4,6 @@ import { TransfusionService } from './transfusion.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { CreateTransfusionDto } from './dto/create-transfusion.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('prescriptions/transfusion')
 export class TransfusionController {
   constructor(private service: TransfusionService) {}

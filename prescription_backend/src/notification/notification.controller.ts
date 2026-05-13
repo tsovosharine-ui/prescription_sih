@@ -3,8 +3,6 @@ import { Controller, Get, Param, Put, UseGuards, Request } from '@nestjs/common'
 import { NotificationService } from './notification.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('notifications')
 export class NotificationController {
   constructor(private service: NotificationService) {}
