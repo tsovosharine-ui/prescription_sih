@@ -47,14 +47,13 @@ export default function Home() {
     setDataLoading(true);
     setDataError('');
     try {
-      // Récupère le premier patient de la liste dynamiquement
+      const PATIENT_ID = process.env.NEXT_PUBLIC_PATIENT_ID || 'IP-2026-00001';
       const [patients, userData] = await Promise.all([
         fetchWithToken(`${API_URL}/patients`, token),
         fetchWithToken(`${API_URL}/auth/profile`, token),
       ]);
-      // Prend le premier patient disponible
-      const firstPatient = Array.isArray(patients) && patients.length > 0 
-        ? (patients.find((p: any) => p.service) || patients[0]) 
+      const firstPatient = Array.isArray(patients)
+        ? (patients.find((p: any) => p.idPermanent === PATIENT_ID) || patients.find((p: any) => p.service) || patients[0])
         : null;
       setPatient(firstPatient);
       setPrescripteur(userData);
