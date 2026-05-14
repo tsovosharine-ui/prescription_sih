@@ -239,6 +239,7 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
     try {
       await creerPrescriptionAnapath({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         urgence,
         alertes,
         typeExamen: tab,

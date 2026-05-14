@@ -3,14 +3,9 @@ import { CreateTransfusionDto } from './dto/create-transfusion.dto';
 export declare class TransfusionController {
     private service;
     constructor(service: TransfusionService);
-    create(req: any, dto: CreateTransfusionDto): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
+    create(dto: CreateTransfusionDto): Promise<{
         patientId: string;
-        statut: string;
         prescripteurId: string;
-        quantite: string | null;
         notes: string | null;
         urgence: string;
         alertes: string | null;
@@ -21,6 +16,11 @@ export declare class TransfusionController {
         hb: number | null;
         produit: string;
         plaquettes: number | null;
+        quantite: string | null;
         datePrevue: Date | null;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

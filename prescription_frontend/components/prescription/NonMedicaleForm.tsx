@@ -161,6 +161,7 @@ export default function NonMedicaleForm({ patient, prescripteur }: Props) {
     try {
       const result = await creerPrescriptionNonMedicale({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         notifierInfirmier: notifOn,
         items: items.map(({ id, type, typeLabel, description, duree, frequence, dateDebut, heureDebut, instructions }) => ({
           type, typeLabel, description, duree, frequence, dateDebut: dateDebut ? new Date(dateDebut) : undefined, heureDebut: heureDebut || undefined, instructions

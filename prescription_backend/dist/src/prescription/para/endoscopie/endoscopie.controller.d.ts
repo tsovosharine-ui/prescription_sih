@@ -3,32 +3,32 @@ import { CreateEndoscopieDto } from './dto/create-endoscopie.dto';
 export declare class EndoscopieController {
     private service;
     constructor(service: EndoscopieService);
-    create(req: any, dto: CreateEndoscopieDto): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
+    create(dto: CreateEndoscopieDto): Promise<{
         patientId: string;
-        statut: string;
         prescripteurId: string;
-        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
         typeExamen: string;
+        remarques: string | null;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
         autreExamen: string | null;
     }>;
     findByPatient(patientId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         patientId: string;
-        statut: string;
         prescripteurId: string;
-        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
         typeExamen: string;
+        remarques: string | null;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
         autreExamen: string | null;
     }[]>;
 }

@@ -21,8 +21,8 @@ let AnapathController = class AnapathController {
     constructor(service) {
         this.service = service;
     }
-    create(req, dto) {
-        return this.service.create(req.user.sub, dto);
+    create(dto) {
+        return this.service.create(dto.prescripteurId, dto);
     }
     findByPatient(patientId) {
         return this.service.findByPatient(patientId);
@@ -31,10 +31,9 @@ let AnapathController = class AnapathController {
 exports.AnapathController = AnapathController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_anapath_dto_1.CreateAnapathDto]),
+    __metadata("design:paramtypes", [create_anapath_dto_1.CreateAnapathDto]),
     __metadata("design:returntype", void 0)
 ], AnapathController.prototype, "create", null);
 __decorate([

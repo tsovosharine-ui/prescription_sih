@@ -1,5 +1,6 @@
 export declare class CreateKineDto {
     patientId: string;
+    prescripteurId: string;
     urgence?: string;
     alertes?: string;
     renseignements: string;

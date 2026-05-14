@@ -12,6 +12,7 @@ declare class MedicamentDto {
 }
 export declare class CreateMedicaleDto {
     patientId: string;
+    prescripteurId: string;
     remarques?: string;
     notifierInfirmier?: boolean;
     medicaments: MedicamentDto[];

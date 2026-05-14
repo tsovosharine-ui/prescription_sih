@@ -3,28 +3,28 @@ import { CreateAnapathDto } from './dto/create-anapath.dto';
 export declare class AnapathController {
     private service;
     constructor(service: AnapathService);
-    create(req: any, dto: CreateAnapathDto): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        data: import("@prisma/client/runtime/library").JsonValue;
+    create(dto: CreateAnapathDto): Promise<{
         patientId: string;
-        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         typeExamen: string;
+        data: import("@prisma/client/runtime/library").JsonValue;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     findByPatient(patientId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        data: import("@prisma/client/runtime/library").JsonValue;
         patientId: string;
-        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         typeExamen: string;
+        data: import("@prisma/client/runtime/library").JsonValue;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
 }

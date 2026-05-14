@@ -21,7 +21,7 @@ let MedicaleService = class MedicaleService {
         this.notifier = notifier;
     }
     async create(prescripteurId, dto) {
-        const { medicaments, ...rest } = dto;
+        const { medicaments, prescripteurId: _pid, ...rest } = dto;
         const prescription = await this.prisma.prescriptionMedicale.create({
             data: {
                 ...rest,

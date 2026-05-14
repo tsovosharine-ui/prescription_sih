@@ -2,6 +2,7 @@ import { IsString, IsOptional, IsBoolean, IsNumber, IsDateString } from 'class-v
 
 export class CreateTransfusionDto {
   @IsString() patientId: string;
+  @IsString() prescripteurId: string;
   @IsOptional() @IsString() urgence?: string;
   @IsOptional() @IsString() alertes?: string;
   @IsString() renseignements: string;

@@ -9,8 +9,8 @@ export class EegController {
   constructor(private service: EegService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateEEGDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateEEGDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

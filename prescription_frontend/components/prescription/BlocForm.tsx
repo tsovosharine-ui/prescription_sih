@@ -54,6 +54,7 @@ export default function BlocForm({ patient, prescripteur }: Props) {
     try {
       await creerPrescriptionBloc({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         urgence,
         alertes,
         libelle,

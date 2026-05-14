@@ -41,6 +41,8 @@ class MedicamentDto {
 export class CreateMedicaleDto {
   @IsString()
   patientId: string;
+  @IsString()
+  prescripteurId: string;
 
   @IsOptional()
   @IsString()

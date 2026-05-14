@@ -9,8 +9,8 @@ export class DialyseController {
   constructor(private service: DialyseService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateDialyseDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateDialyseDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

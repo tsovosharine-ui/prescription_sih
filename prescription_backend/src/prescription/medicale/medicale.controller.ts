@@ -9,8 +9,8 @@ export class MedicaleController {
   constructor(private service: MedicaleService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateMedicaleDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateMedicaleDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

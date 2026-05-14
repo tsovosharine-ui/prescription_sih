@@ -9,8 +9,8 @@ export class LaboController {
   constructor(private service: LaboService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateLaboDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateLaboDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

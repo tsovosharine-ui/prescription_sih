@@ -6,9 +6,9 @@ export declare class AuthController {
     constructor(authService: AuthService);
     register(dto: RegisterDto): Promise<{
         id: string;
+        email: string;
         nom: string;
         prenoms: string;
-        email: string;
         poste: string;
         matricule: string | null;
         numeroOrdre: string | null;
@@ -21,9 +21,9 @@ export declare class AuthController {
         access_token: string;
         user: {
             id: string;
+            email: string;
             nom: string;
             prenoms: string;
-            email: string;
             poste: string;
             matricule: string | null;
             numeroOrdre: string | null;
@@ -35,9 +35,9 @@ export declare class AuthController {
     }>;
     getProfile(req: any): Promise<{
         id: string;
+        email: string;
         nom: string;
         prenoms: string;
-        email: string;
         poste: string;
         matricule: string | null;
         numeroOrdre: string | null;

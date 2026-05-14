@@ -61,6 +61,7 @@ __decorate([
 ], ItemDto.prototype, "instructions", void 0);
 class CreateNonMedicaleDto {
     patientId;
+    prescripteurId;
     notifierInfirmier;
     items;
 }
@@ -69,6 +70,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateNonMedicaleDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateNonMedicaleDto.prototype, "prescripteurId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),

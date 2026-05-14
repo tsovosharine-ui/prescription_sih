@@ -9,8 +9,8 @@ export class ImagerieController {
   constructor(private service: ImagerieService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateImagerieDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateImagerieDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

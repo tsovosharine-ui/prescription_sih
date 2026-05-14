@@ -21,8 +21,8 @@ let ImagerieController = class ImagerieController {
     constructor(service) {
         this.service = service;
     }
-    create(req, dto) {
-        return this.service.create(req.user.sub, dto);
+    create(dto) {
+        return this.service.create(dto.prescripteurId, dto);
     }
     findByPatient(patientId) {
         return this.service.findByPatient(patientId);
@@ -31,10 +31,9 @@ let ImagerieController = class ImagerieController {
 exports.ImagerieController = ImagerieController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_imagerie_dto_1.CreateImagerieDto]),
+    __metadata("design:paramtypes", [create_imagerie_dto_1.CreateImagerieDto]),
     __metadata("design:returntype", void 0)
 ], ImagerieController.prototype, "create", null);
 __decorate([

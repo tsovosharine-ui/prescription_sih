@@ -214,6 +214,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
     try {
       const result = await creerPrescriptionMedicale({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         remarques: remarqueGenerale,
         notifierInfirmier: notifier,
         medicaments: medicaments.map(({ id, dateDebut, heureDebut, duree, ...rest }) => ({
@@ -256,6 +257,7 @@ export default function MedicaleForm({ patient, prescripteur }: Props) {
     try {
       const result = await creerPrescriptionMedicale({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         remarques: remarqueGenerale,
         notifierInfirmier: notifier,
         medicaments: medicaments.map(({ id, dateDebut, heureDebut, duree, ...rest }) => ({

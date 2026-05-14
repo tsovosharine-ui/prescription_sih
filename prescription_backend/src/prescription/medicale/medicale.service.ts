@@ -10,7 +10,7 @@ export class MedicaleService {
   ) {}
 
   async create(prescripteurId: string, dto: any) {
-    const { medicaments, ...rest } = dto;
+    const { medicaments, prescripteurId: _pid, ...rest } = dto;
     const prescription = await this.prisma.prescriptionMedicale.create({
       data: {
         ...rest,

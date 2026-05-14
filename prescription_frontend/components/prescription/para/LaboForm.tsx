@@ -67,6 +67,7 @@ export default function LaboForm({ patient, prescripteur }: Props) {
     try {
       await creerPrescriptionLabo({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         urgence,
         alertes,
         renseignements,

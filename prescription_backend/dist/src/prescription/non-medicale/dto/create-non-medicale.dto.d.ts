@@ -10,6 +10,7 @@ declare class ItemDto {
 }
 export declare class CreateNonMedicaleDto {
     patientId: string;
+    prescripteurId: string;
     notifierInfirmier?: boolean;
     items: ItemDto[];
 }

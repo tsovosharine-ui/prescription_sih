@@ -9,7 +9,7 @@ export class BlocController {
   constructor(private service: BlocService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateBlocDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateBlocDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 }

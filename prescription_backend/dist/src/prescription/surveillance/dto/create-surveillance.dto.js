@@ -38,6 +38,7 @@ __decorate([
 ], ParametreDto.prototype, "seuil", void 0);
 class CreateSurveillanceDto {
     patientId;
+    prescripteurId;
     notes;
     notifierInfirmier;
     parametres;
@@ -47,6 +48,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateSurveillanceDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateSurveillanceDto.prototype, "prescripteurId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

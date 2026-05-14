@@ -9,8 +9,8 @@ export class EndoscopieController {
   constructor(private service: EndoscopieService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateEndoscopieDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateEndoscopieDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

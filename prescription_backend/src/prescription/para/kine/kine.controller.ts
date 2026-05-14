@@ -9,8 +9,8 @@ export class KineController {
   constructor(private service: KineService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateKineDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateKineDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')

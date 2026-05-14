@@ -9,7 +9,7 @@ export class TransfusionController {
   constructor(private service: TransfusionService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateTransfusionDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateTransfusionDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 }

@@ -71,6 +71,7 @@ __decorate([
 ], MedicamentDto.prototype, "remarques", void 0);
 class CreateMedicaleDto {
     patientId;
+    prescripteurId;
     remarques;
     notifierInfirmier;
     medicaments;
@@ -80,6 +81,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateMedicaleDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateMedicaleDto.prototype, "prescripteurId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

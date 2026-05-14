@@ -14,6 +14,7 @@ class ItemDto {
 
 export class CreateNonMedicaleDto {
   @IsString() patientId: string;
+  @IsString() prescripteurId: string;
   @IsOptional() @IsBoolean() notifierInfirmier?: boolean;
   @IsArray() @ValidateNested({ each: true }) @Type(() => ItemDto) items: ItemDto[];
 }

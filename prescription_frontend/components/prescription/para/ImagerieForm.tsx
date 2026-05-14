@@ -121,6 +121,7 @@ export default function ImagerieForm({ patient, prescripteur }: Props) {
     try {
       await creerPrescriptionImagerie({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         urgence,
         alertes,
         renseignements,

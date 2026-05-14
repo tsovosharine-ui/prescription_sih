@@ -21,8 +21,8 @@ let MedicaleController = class MedicaleController {
     constructor(service) {
         this.service = service;
     }
-    create(req, dto) {
-        return this.service.create(req.user.sub, dto);
+    create(dto) {
+        return this.service.create(dto.prescripteurId, dto);
     }
     findByPatient(patientId) {
         return this.service.findByPatient(patientId);
@@ -40,10 +40,9 @@ let MedicaleController = class MedicaleController {
 exports.MedicaleController = MedicaleController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_medicale_dto_1.CreateMedicaleDto]),
+    __metadata("design:paramtypes", [create_medicale_dto_1.CreateMedicaleDto]),
     __metadata("design:returntype", void 0)
 ], MedicaleController.prototype, "create", null);
 __decorate([

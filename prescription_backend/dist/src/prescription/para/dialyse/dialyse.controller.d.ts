@@ -3,30 +3,30 @@ import { CreateDialyseDto } from './dto/create-dialyse.dto';
 export declare class DialyseController {
     private service;
     constructor(service: DialyseService);
-    create(req: any, dto: CreateDialyseDto): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
+    create(dto: CreateDialyseDto): Promise<{
         patientId: string;
-        statut: string;
         prescripteurId: string;
-        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
+        remarques: string | null;
         typeDialyse: string;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     findByPatient(patientId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         patientId: string;
-        statut: string;
         prescripteurId: string;
-        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
+        remarques: string | null;
         typeDialyse: string;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
 }

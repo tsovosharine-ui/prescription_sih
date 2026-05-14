@@ -6,6 +6,7 @@ declare class ParametreDto {
 }
 export declare class CreateSurveillanceDto {
     patientId: string;
+    prescripteurId: string;
     notes?: string;
     notifierInfirmier?: boolean;
     parametres: ParametreDto[];

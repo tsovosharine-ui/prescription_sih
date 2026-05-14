@@ -13,6 +13,7 @@ exports.CreateBlocDto = void 0;
 const class_validator_1 = require("class-validator");
 class CreateBlocDto {
     patientId;
+    prescripteurId;
     urgence;
     alertes;
     libelle;
@@ -27,6 +28,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateBlocDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateBlocDto.prototype, "prescripteurId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

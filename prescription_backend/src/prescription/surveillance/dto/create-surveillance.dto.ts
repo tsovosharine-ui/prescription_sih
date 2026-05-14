@@ -10,6 +10,7 @@ class ParametreDto {
 
 export class CreateSurveillanceDto {
   @IsString() patientId: string;
+  @IsString() prescripteurId: string;
   @IsOptional() @IsString() notes?: string;
   @IsOptional() @IsBoolean() notifierInfirmier?: boolean;
   @IsArray() @ValidateNested({ each: true }) @Type(() => ParametreDto) parametres: ParametreDto[];

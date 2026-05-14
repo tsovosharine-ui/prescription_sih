@@ -21,8 +21,8 @@ let EegController = class EegController {
     constructor(service) {
         this.service = service;
     }
-    create(req, dto) {
-        return this.service.create(req.user.sub, dto);
+    create(dto) {
+        return this.service.create(dto.prescripteurId, dto);
     }
     findByPatient(patientId) {
         return this.service.findByPatient(patientId);
@@ -31,10 +31,9 @@ let EegController = class EegController {
 exports.EegController = EegController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_eeg_dto_1.CreateEEGDto]),
+    __metadata("design:paramtypes", [create_eeg_dto_1.CreateEEGDto]),
     __metadata("design:returntype", void 0)
 ], EegController.prototype, "create", null);
 __decorate([

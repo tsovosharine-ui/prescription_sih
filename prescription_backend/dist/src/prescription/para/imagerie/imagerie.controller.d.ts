@@ -3,32 +3,32 @@ import { CreateImagerieDto } from './dto/create-imagerie.dto';
 export declare class ImagerieController {
     private service;
     constructor(service: ImagerieService);
-    create(req: any, dto: CreateImagerieDto): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
+    create(dto: CreateImagerieDto): Promise<{
         patientId: string;
-        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
-        statutPatient: string | null;
         examens: import("@prisma/client/runtime/library").JsonValue;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
+        statutPatient: string | null;
     }>;
     findByPatient(patientId: string): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         patientId: string;
-        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
-        statutPatient: string | null;
         examens: import("@prisma/client/runtime/library").JsonValue;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
+        statutPatient: string | null;
     }[]>;
 }

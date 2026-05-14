@@ -154,6 +154,7 @@ export default function SurveillanceForm({ patient, prescripteur }: Props) {
     try {
       const result = await creerPrescriptionSurveillance({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         notes,
         notifierInfirmier: notifOn,
         parametres: items.map(({ id, parametreLabel, customNom, customDesc, customUnite, customTarget, taille, sngTypes, sngRemarques, drainLocalisation, drainTypes, ...rest }) => rest),

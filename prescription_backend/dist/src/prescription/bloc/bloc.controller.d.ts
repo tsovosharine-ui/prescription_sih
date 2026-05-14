@@ -3,21 +3,21 @@ import { CreateBlocDto } from './dto/create-bloc.dto';
 export declare class BlocController {
     private service;
     constructor(service: BlocService);
-    create(req: any, dto: CreateBlocDto): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
+    create(dto: CreateBlocDto): Promise<{
         patientId: string;
-        statut: string;
         prescripteurId: string;
         urgence: string;
         alertes: string | null;
         libelle: string;
-        cote: string | null;
-        dateIntervention: Date | null;
         risqueHemorragique: string | null;
         typeChirurgie: string | null;
-        consignes: string | null;
         chirurgien: string | null;
+        consignes: string | null;
+        dateIntervention: Date | null;
+        id: string;
+        statut: string;
+        createdAt: Date;
+        updatedAt: Date;
+        cote: string | null;
     }>;
 }

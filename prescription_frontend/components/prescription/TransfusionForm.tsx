@@ -62,6 +62,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
     try {
       await creerPrescriptionTransfusion({
         patientId: patient.id,
+        prescripteurId: prescripteur.id,
         urgence,
         alertes,
         renseignements,

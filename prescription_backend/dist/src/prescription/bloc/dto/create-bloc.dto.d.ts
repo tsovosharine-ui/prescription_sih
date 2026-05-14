@@ -1,5 +1,6 @@
 export declare class CreateBlocDto {
     patientId: string;
+    prescripteurId: string;
     urgence?: string;
     alertes?: string;
     libelle: string;

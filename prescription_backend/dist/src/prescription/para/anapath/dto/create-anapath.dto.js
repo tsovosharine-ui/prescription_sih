@@ -13,6 +13,7 @@ exports.CreateAnapathDto = void 0;
 const class_validator_1 = require("class-validator");
 class CreateAnapathDto {
     patientId;
+    prescripteurId;
     urgence;
     alertes;
     typeExamen;
@@ -23,6 +24,10 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateAnapathDto.prototype, "patientId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateAnapathDto.prototype, "prescripteurId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

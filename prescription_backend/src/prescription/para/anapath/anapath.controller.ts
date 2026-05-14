@@ -9,8 +9,8 @@ export class AnapathController {
   constructor(private service: AnapathService) {}
 
   @Post()
-  create(@Request() req: any, @Body() dto: CreateAnapathDto) {
-    return this.service.create(req.user.sub, dto);
+  create(@Body() dto: CreateAnapathDto) {
+    return this.service.create(dto.prescripteurId, dto);
   }
 
   @Get('patient/:patientId')
