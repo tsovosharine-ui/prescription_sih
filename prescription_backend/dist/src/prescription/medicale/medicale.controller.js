@@ -13,10 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MedicaleController = void 0;
-const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const medicale_service_1 = require("./medicale.service");
-const jwt_auth_guard_1 = require("../../auth/jwt-auth.guard");
 const create_medicale_dto_1 = require("./dto/create-medicale.dto");
 let MedicaleController = class MedicaleController {
     service;
@@ -79,8 +77,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MedicaleController.prototype, "updateStatut", null);
 exports.MedicaleController = MedicaleController = __decorate([
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('prescriptions/medicale'),
     __metadata("design:paramtypes", [medicale_service_1.MedicaleService])
 ], MedicaleController);

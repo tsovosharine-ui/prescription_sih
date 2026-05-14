@@ -13,10 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LaboController = void 0;
-const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const labo_service_1 = require("./labo.service");
-const jwt_auth_guard_1 = require("../../../auth/jwt-auth.guard");
 const create_labo_dto_1 = require("./dto/create-labo.dto");
 let LaboController = class LaboController {
     service;
@@ -47,8 +45,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LaboController.prototype, "findByPatient", null);
 exports.LaboController = LaboController = __decorate([
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('prescriptions/labo'),
     __metadata("design:paramtypes", [labo_service_1.LaboService])
 ], LaboController);

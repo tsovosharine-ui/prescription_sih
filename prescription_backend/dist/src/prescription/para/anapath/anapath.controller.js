@@ -13,10 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnapathController = void 0;
-const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const anapath_service_1 = require("./anapath.service");
-const jwt_auth_guard_1 = require("../../../auth/jwt-auth.guard");
 const create_anapath_dto_1 = require("./dto/create-anapath.dto");
 let AnapathController = class AnapathController {
     service;
@@ -47,8 +45,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AnapathController.prototype, "findByPatient", null);
 exports.AnapathController = AnapathController = __decorate([
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('prescriptions/anapath'),
     __metadata("design:paramtypes", [anapath_service_1.AnapathService])
 ], AnapathController);

@@ -13,10 +13,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationController = void 0;
-const swagger_1 = require("@nestjs/swagger");
 const common_1 = require("@nestjs/common");
 const notification_service_1 = require("./notification.service");
-const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 let NotificationController = class NotificationController {
     service;
     constructor(service) {
@@ -65,8 +63,6 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], NotificationController.prototype, "markAsRead", null);
 exports.NotificationController = NotificationController = __decorate([
-    (0, swagger_1.ApiBearerAuth)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Controller)('notifications'),
     __metadata("design:paramtypes", [notification_service_1.NotificationService])
 ], NotificationController);
