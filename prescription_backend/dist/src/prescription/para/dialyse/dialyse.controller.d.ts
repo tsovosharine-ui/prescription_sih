@@ -4,29 +4,29 @@ export declare class DialyseController {
     private service;
     constructor(service: DialyseService);
     create(dto: CreateDialyseDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
+        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
-        remarques: string | null;
         typeDialyse: string;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     findByPatient(patientId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
+        remarques: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
-        remarques: string | null;
         typeDialyse: string;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
 }

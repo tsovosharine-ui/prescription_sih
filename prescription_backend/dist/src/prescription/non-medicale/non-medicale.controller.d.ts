@@ -5,82 +5,82 @@ export declare class NonMedicaleController {
     constructor(service: NonMedicaleService);
     create(dto: CreateNonMedicaleDto): Promise<{
         items: {
+            id: string;
+            createdAt: Date;
             type: string;
-            typeLabel: string | null;
             description: string;
-            duree: string | null;
             frequence: string | null;
+            duree: string | null;
             dateDebut: Date | null;
             heureDebut: string | null;
             instructions: string | null;
-            id: string;
-            createdAt: Date;
             prescriptionId: string;
+            typeLabel: string | null;
         }[];
     } & {
-        patientId: string;
-        prescripteurId: string;
-        notifierInfirmier: boolean;
         id: string;
-        statut: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        notifierInfirmier: boolean;
     }>;
     findByPatient(patientId: string): Promise<({
         items: {
+            id: string;
+            createdAt: Date;
             type: string;
-            typeLabel: string | null;
             description: string;
-            duree: string | null;
             frequence: string | null;
+            duree: string | null;
             dateDebut: Date | null;
             heureDebut: string | null;
             instructions: string | null;
-            id: string;
-            createdAt: Date;
             prescriptionId: string;
+            typeLabel: string | null;
         }[];
     } & {
-        patientId: string;
-        prescripteurId: string;
-        notifierInfirmier: boolean;
         id: string;
-        statut: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        notifierInfirmier: boolean;
     })[]>;
     findOne(id: string): Promise<{
         items: {
+            id: string;
+            createdAt: Date;
             type: string;
-            typeLabel: string | null;
             description: string;
-            duree: string | null;
             frequence: string | null;
+            duree: string | null;
             dateDebut: Date | null;
             heureDebut: string | null;
             instructions: string | null;
-            id: string;
-            createdAt: Date;
             prescriptionId: string;
+            typeLabel: string | null;
         }[];
     } & {
-        patientId: string;
-        prescripteurId: string;
-        notifierInfirmier: boolean;
         id: string;
-        statut: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        notifierInfirmier: boolean;
     }>;
     updateStatut(id: string, dto: {
         statut: string;
     }): Promise<{
-        patientId: string;
-        prescripteurId: string;
-        notifierInfirmier: boolean;
         id: string;
-        statut: string;
         createdAt: Date;
         updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        notifierInfirmier: boolean;
     }>;
 }

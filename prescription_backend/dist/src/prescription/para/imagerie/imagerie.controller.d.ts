@@ -4,31 +4,31 @@ export declare class ImagerieController {
     private service;
     constructor(service: ImagerieService);
     create(dto: CreateImagerieDto): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
-        examens: import("@prisma/client/runtime/library").JsonValue;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
         statutPatient: string | null;
+        examens: import("@prisma/client/runtime/library").JsonValue;
     }>;
     findByPatient(patientId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notes: string | null;
         urgence: string;
         alertes: string | null;
         renseignements: string;
-        examens: import("@prisma/client/runtime/library").JsonValue;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
         statutPatient: string | null;
+        examens: import("@prisma/client/runtime/library").JsonValue;
     }[]>;
 }

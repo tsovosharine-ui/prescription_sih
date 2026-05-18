@@ -5,77 +5,77 @@ export declare class SurveillanceController {
     constructor(service: SurveillanceService);
     create(dto: CreateSurveillanceDto): Promise<{
         parametres: {
-            duree: string | null;
-            frequence: string;
-            parametre: string;
-            seuil: string | null;
             id: string;
             createdAt: Date;
-            details: import("@prisma/client/runtime/library").JsonValue | null;
+            frequence: string;
+            duree: string | null;
             prescriptionId: string;
+            parametre: string;
+            seuil: string | null;
+            details: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notifierInfirmier: boolean;
         notes: string | null;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     findByPatient(patientId: string): Promise<({
         parametres: {
-            duree: string | null;
-            frequence: string;
-            parametre: string;
-            seuil: string | null;
             id: string;
             createdAt: Date;
-            details: import("@prisma/client/runtime/library").JsonValue | null;
+            frequence: string;
+            duree: string | null;
             prescriptionId: string;
+            parametre: string;
+            seuil: string | null;
+            details: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notifierInfirmier: boolean;
         notes: string | null;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     findOne(id: string): Promise<{
         parametres: {
-            duree: string | null;
-            frequence: string;
-            parametre: string;
-            seuil: string | null;
             id: string;
             createdAt: Date;
-            details: import("@prisma/client/runtime/library").JsonValue | null;
+            frequence: string;
+            duree: string | null;
             prescriptionId: string;
+            parametre: string;
+            seuil: string | null;
+            details: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     } & {
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notifierInfirmier: boolean;
         notes: string | null;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     updateStatut(id: string, dto: {
         statut: string;
     }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         patientId: string;
+        statut: string;
         prescripteurId: string;
         notifierInfirmier: boolean;
         notes: string | null;
-        id: string;
-        statut: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
 }

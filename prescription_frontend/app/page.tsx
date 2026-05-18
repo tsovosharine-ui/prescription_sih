@@ -14,6 +14,7 @@ import KineForm from '@/components/prescription/para/KineForm';
 import DiaryseForm from '@/components/prescription/para/DiaryseForm';
 import EndoscopieForm from '@/components/prescription/para/EndoscopieForm';
 import BlocForm from '@/components/prescription/BlocForm';
+import HistoriqueForm from '@/components/prescription/HistoriqueForm';
 import { login, getToken, setToken, removeToken } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -155,6 +156,7 @@ export default function Home() {
             case 'surv':  return <SurveillanceForm patient={patient} prescripteur={prescripteur} />;
             case 'trans': return <TransfusionForm  patient={patient} prescripteur={prescripteur} />;
             case 'bloc':  return <BlocForm         patient={patient} prescripteur={prescripteur} />;
+            case 'hist':  return <HistoriqueForm   patient={patient} prescripteur={prescripteur} />;
             case 'labo':  return <LaboForm         patient={patient} prescripteur={prescripteur} />;
             case 'imag':  return <ImagerieForm     patient={patient} prescripteur={prescripteur} />;
             case 'ana':   return <AnapathForm      patient={patient} prescripteur={prescripteur} />;
