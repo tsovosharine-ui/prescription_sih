@@ -20,4 +20,57 @@ export declare class BlocController {
         consignes: string | null;
         chirurgien: string | null;
     }>;
+    findByPatient(patientId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        urgence: string;
+        alertes: string | null;
+        libelle: string;
+        cote: string | null;
+        dateIntervention: Date | null;
+        risqueHemorragique: string | null;
+        typeChirurgie: string | null;
+        consignes: string | null;
+        chirurgien: string | null;
+    }[]>;
+    findOne(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        urgence: string;
+        alertes: string | null;
+        libelle: string;
+        cote: string | null;
+        dateIntervention: Date | null;
+        risqueHemorragique: string | null;
+        typeChirurgie: string | null;
+        consignes: string | null;
+        chirurgien: string | null;
+    }>;
+    updateStatut(id: string, dto: {
+        statut: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        urgence: string;
+        alertes: string | null;
+        libelle: string;
+        cote: string | null;
+        dateIntervention: Date | null;
+        risqueHemorragique: string | null;
+        typeChirurgie: string | null;
+        consignes: string | null;
+        chirurgien: string | null;
+    }>;
 }

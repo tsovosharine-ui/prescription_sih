@@ -23,4 +23,66 @@ export declare class TransfusionController {
         plaquettes: number | null;
         datePrevue: Date | null;
     }>;
+    findByPatient(patientId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        quantite: string | null;
+        notes: string | null;
+        urgence: string;
+        alertes: string | null;
+        renseignements: string;
+        atcdTransfusion: boolean;
+        incident: string | null;
+        groupage: string;
+        hb: number | null;
+        produit: string;
+        plaquettes: number | null;
+        datePrevue: Date | null;
+    }[]>;
+    findOne(id: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        quantite: string | null;
+        notes: string | null;
+        urgence: string;
+        alertes: string | null;
+        renseignements: string;
+        atcdTransfusion: boolean;
+        incident: string | null;
+        groupage: string;
+        hb: number | null;
+        produit: string;
+        plaquettes: number | null;
+        datePrevue: Date | null;
+    }>;
+    updateStatut(id: string, dto: {
+        statut: string;
+    }): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        patientId: string;
+        statut: string;
+        prescripteurId: string;
+        quantite: string | null;
+        notes: string | null;
+        urgence: string;
+        alertes: string | null;
+        renseignements: string;
+        atcdTransfusion: boolean;
+        incident: string | null;
+        groupage: string;
+        hb: number | null;
+        produit: string;
+        plaquettes: number | null;
+        datePrevue: Date | null;
+    }>;
 }

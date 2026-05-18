@@ -30,8 +30,8 @@ const TYPE_COLORS: Record<string, string> = {
 const ENDPOINTS: Record<string, string> = {
   med:   'prescriptions/medicale',
   nm:    'prescriptions/non-medicale',
-  surv:  'surveillance',
-  trans: 'transfusion',
+  surv:  'prescriptions/surveillance',
+  trans: 'prescriptions/transfusion',
   labo:  'prescriptions/para/labo',
   imag:  'prescriptions/para/imagerie',
   eeg:   'prescriptions/para/eeg',
@@ -43,7 +43,7 @@ const ENDPOINTS: Record<string, string> = {
 };
 
 interface Props {
-  patient?: { idPermanent?: string };
+  patient?: { id?: string, idPermanent?: string };
   prescripteur?: { id?: string };
 }
 
@@ -62,13 +62,13 @@ export default function HistoriqueForm({ patient, prescripteur }: Props) {
     if (!token) { setError('Non authentifié'); setLoading(false); return; }
 
     try {
-      const patientId = patient?.idPermanent;
+      const patientId = patient?.id;
       const typesToFetch = filtre === 'all' ? Object.keys(ENDPOINTS) : [filtre];
       const results: any[] = [];
 
       await Promise.all(typesToFetch.map(async (type) => {
         try {
-          const url = `${API_URL}/${ENDPOINTS[type]}${patientId ? `?patientId=${patientId}` : ''}`;
+          const url = `${API_URL}/${ENDPOINTS[type]}${patientId ? `/patient/${patientId}` : ''}`;
           const res = await fetch(url, {
             headers: { Authorization: `Bearer ${token}` },
           });

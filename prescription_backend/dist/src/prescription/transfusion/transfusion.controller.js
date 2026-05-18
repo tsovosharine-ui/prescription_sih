@@ -24,6 +24,15 @@ let TransfusionController = class TransfusionController {
     create(dto) {
         return this.service.create(dto.prescripteurId, dto);
     }
+    findByPatient(patientId) {
+        return this.service.findByPatient(patientId);
+    }
+    findOne(id) {
+        return this.service.findOne(id);
+    }
+    updateStatut(id, dto) {
+        return this.service.updateStatut(id, dto.statut);
+    }
 };
 exports.TransfusionController = TransfusionController;
 __decorate([
@@ -33,6 +42,28 @@ __decorate([
     __metadata("design:paramtypes", [create_transfusion_dto_1.CreateTransfusionDto]),
     __metadata("design:returntype", void 0)
 ], TransfusionController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('patient/:patientId'),
+    __param(0, (0, common_1.Param)('patientId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], TransfusionController.prototype, "findByPatient", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], TransfusionController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Put)(':id/statut'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], TransfusionController.prototype, "updateStatut", null);
 exports.TransfusionController = TransfusionController = __decorate([
     (0, common_1.Controller)('prescriptions/transfusion'),
     __metadata("design:paramtypes", [transfusion_service_1.TransfusionService])
